@@ -1,0 +1,456 @@
+--- Chest GLB Inspection ---
+Name: wooden_treasures_box
+Renderer: defaultMaterial, Bounds Center: (0.06, 0.79, -0.01), Size: (1.63, 0.01, 1.43)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 4, Mesh Bounds Size: (1.63, 0.01, 1.43)
+Renderer: defaultMaterial, Bounds Center: (0.00, -0.70, -0.76), Size: (1.89, 0.26, 0.05)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 206, Mesh Bounds Size: (1.89, 0.26, 0.05)
+Renderer: defaultMaterial, Bounds Center: (0.34, 0.33, -0.78), Size: (0.09, 0.24, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 22, Mesh Bounds Size: (0.09, 0.24, 0.02)
+Renderer: defaultMaterial, Bounds Center: (-0.34, 0.33, -0.78), Size: (0.09, 0.25, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 82, Mesh Bounds Size: (0.09, 0.25, 0.02)
+Renderer: defaultMaterial, Bounds Center: (0.90, -0.06, -0.73), Size: (0.11, 1.02, 0.10)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 37, Mesh Bounds Size: (0.11, 1.02, 0.10)
+Renderer: defaultMaterial, Bounds Center: (0.77, -0.06, -0.77), Size: (0.16, 1.02, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 26, Mesh Bounds Size: (0.16, 1.02, 0.02)
+Renderer: defaultMaterial, Bounds Center: (0.33, -0.06, -0.77), Size: (0.65, 1.01, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 36, Mesh Bounds Size: (0.65, 1.01, 0.02)
+Renderer: defaultMaterial, Bounds Center: (-0.33, -0.06, -0.77), Size: (0.65, 1.01, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 38, Mesh Bounds Size: (0.65, 1.01, 0.02)
+Renderer: defaultMaterial, Bounds Center: (-0.77, -0.07, -0.77), Size: (0.16, 1.03, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 37, Mesh Bounds Size: (0.16, 1.03, 0.02)
+Renderer: defaultMaterial, Bounds Center: (-0.90, -0.06, -0.73), Size: (0.11, 1.03, 0.10)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 77, Mesh Bounds Size: (0.11, 1.03, 0.10)
+Renderer: defaultMaterial, Bounds Center: (0.91, 0.64, -0.73), Size: (0.11, 0.37, 0.10)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 63, Mesh Bounds Size: (0.11, 0.37, 0.10)
+Renderer: defaultMaterial, Bounds Center: (0.77, 0.63, -0.77), Size: (0.16, 0.36, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 28, Mesh Bounds Size: (0.16, 0.36, 0.02)
+Renderer: defaultMaterial, Bounds Center: (0.58, 0.63, -0.77), Size: (0.22, 0.36, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 24, Mesh Bounds Size: (0.22, 0.36, 0.02)
+Renderer: defaultMaterial, Bounds Center: (0.00, 0.62, -0.74), Size: (1.87, 0.35, 0.05)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 56, Mesh Bounds Size: (1.87, 0.35, 0.05)
+Renderer: defaultMaterial, Bounds Center: (-0.58, 0.63, -0.77), Size: (0.22, 0.36, 0.03)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 54, Mesh Bounds Size: (0.22, 0.36, 0.03)
+Renderer: defaultMaterial, Bounds Center: (-0.77, 0.64, -0.77), Size: (0.16, 0.36, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 40, Mesh Bounds Size: (0.16, 0.36, 0.02)
+Renderer: defaultMaterial, Bounds Center: (-0.91, 0.64, -0.73), Size: (0.11, 0.37, 0.10)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 70, Mesh Bounds Size: (0.11, 0.37, 0.10)
+Renderer: defaultMaterial, Bounds Center: (0.77, -0.46, -0.79), Size: (0.08, 0.08, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.08, 0.08, 0.02)
+Renderer: defaultMaterial, Bounds Center: (0.77, 0.38, -0.79), Size: (0.08, 0.08, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.08, 0.08, 0.02)
+Renderer: defaultMaterial, Bounds Center: (0.77, 0.68, -0.79), Size: (0.08, 0.08, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.08, 0.08, 0.02)
+Renderer: defaultMaterial, Bounds Center: (0.60, 0.52, -0.79), Size: (0.08, 0.08, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.08, 0.08, 0.02)
+Renderer: defaultMaterial, Bounds Center: (0.51, 0.39, -0.79), Size: (0.08, 0.08, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.08, 0.08, 0.02)
+Renderer: defaultMaterial, Bounds Center: (0.34, 0.11, -0.79), Size: (0.08, 0.08, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.08, 0.08, 0.02)
+Renderer: defaultMaterial, Bounds Center: (0.00, -0.40, -0.79), Size: (0.08, 0.08, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.08, 0.08, 0.02)
+Renderer: defaultMaterial, Bounds Center: (-0.51, 0.39, -0.79), Size: (0.08, 0.08, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.08, 0.08, 0.02)
+Renderer: defaultMaterial, Bounds Center: (-0.60, 0.52, -0.79), Size: (0.08, 0.08, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.08, 0.08, 0.02)
+Renderer: defaultMaterial, Bounds Center: (-0.77, 0.68, -0.79), Size: (0.08, 0.08, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.08, 0.08, 0.02)
+Renderer: defaultMaterial, Bounds Center: (-0.77, 0.38, -0.79), Size: (0.08, 0.08, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.08, 0.08, 0.02)
+Renderer: defaultMaterial, Bounds Center: (-0.77, -0.46, -0.79), Size: (0.08, 0.08, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.08, 0.08, 0.02)
+Renderer: defaultMaterial, Bounds Center: (0.98, 0.41, -0.04), Size: (0.01, 0.03, 0.03)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.01, 0.03, 0.03)
+Renderer: defaultMaterial, Bounds Center: (0.98, 0.41, 0.05), Size: (0.01, 0.03, 0.03)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.01, 0.03, 0.03)
+Renderer: defaultMaterial, Bounds Center: (0.99, 0.22, 0.00), Size: (0.02, 0.29, 0.28)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 280, Mesh Bounds Size: (0.02, 0.29, 0.28)
+Renderer: defaultMaterial, Bounds Center: (0.99, 0.35, 0.00), Size: (0.03, 0.08, 0.21)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 112, Mesh Bounds Size: (0.03, 0.08, 0.21)
+Renderer: defaultMaterial, Bounds Center: (0.96, 0.31, 0.00), Size: (0.02, 0.27, 0.23)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 60, Mesh Bounds Size: (0.02, 0.27, 0.23)
+Renderer: defaultMaterial, Bounds Center: (0.93, -0.69, -0.01), Size: (0.06, 0.25, 1.45)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 191, Mesh Bounds Size: (0.06, 0.25, 1.45)
+Renderer: defaultMaterial, Bounds Center: (0.95, -0.06, -0.03), Size: (0.01, 1.04, 1.41)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 12, Mesh Bounds Size: (0.01, 1.04, 1.41)
+Renderer: defaultMaterial, Bounds Center: (0.95, 0.62, -0.03), Size: (0.01, 0.34, 1.41)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 48, Mesh Bounds Size: (0.01, 0.34, 1.41)
+Renderer: defaultMaterial, Bounds Center: (0.91, 0.77, -0.01), Size: (0.11, 0.10, 1.35)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 102, Mesh Bounds Size: (0.11, 0.10, 1.35)
+Renderer: defaultMaterial, Bounds Center: (0.00, -0.58, -0.03), Size: (1.84, 0.01, 1.46)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 21, Mesh Bounds Size: (1.84, 0.01, 1.46)
+Renderer: defaultMaterial, Bounds Center: (-0.98, 0.41, 0.05), Size: (0.01, 0.03, 0.03)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.01, 0.03, 0.03)
+Renderer: defaultMaterial, Bounds Center: (-0.98, 0.41, -0.04), Size: (0.01, 0.03, 0.03)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.01, 0.03, 0.03)
+Renderer: defaultMaterial, Bounds Center: (-0.99, 0.22, 0.00), Size: (0.02, 0.29, 0.28)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 280, Mesh Bounds Size: (0.02, 0.29, 0.28)
+Renderer: defaultMaterial, Bounds Center: (-0.99, 0.35, 0.00), Size: (0.03, 0.08, 0.21)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 102, Mesh Bounds Size: (0.03, 0.08, 0.21)
+Renderer: defaultMaterial, Bounds Center: (-0.96, 0.31, 0.00), Size: (0.02, 0.27, 0.23)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 79, Mesh Bounds Size: (0.02, 0.27, 0.23)
+Renderer: defaultMaterial, Bounds Center: (-0.91, -0.69, -0.01), Size: (0.06, 0.25, 1.45)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 236, Mesh Bounds Size: (0.06, 0.25, 1.45)
+Renderer: defaultMaterial, Bounds Center: (-0.95, -0.06, -0.03), Size: (0.01, 1.03, 1.41)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 30, Mesh Bounds Size: (0.01, 1.03, 1.41)
+Renderer: defaultMaterial, Bounds Center: (-0.95, 0.62, -0.03), Size: (0.01, 0.34, 1.41)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 48, Mesh Bounds Size: (0.01, 0.34, 1.41)
+Renderer: defaultMaterial, Bounds Center: (-0.91, 0.77, -0.01), Size: (0.11, 0.10, 1.34)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 78, Mesh Bounds Size: (0.11, 0.10, 1.34)
+Renderer: defaultMaterial, Bounds Center: (0.00, -0.06, -0.74), Size: (1.87, 1.02, 0.06)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 44, Mesh Bounds Size: (1.87, 1.02, 0.06)
+Renderer: defaultMaterial, Bounds Center: (0.00, -0.70, 0.74), Size: (1.89, 0.26, 0.05)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 201, Mesh Bounds Size: (1.89, 0.26, 0.05)
+Renderer: defaultMaterial, Bounds Center: (0.90, 0.64, 0.71), Size: (0.11, 0.37, 0.10)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 69, Mesh Bounds Size: (0.11, 0.37, 0.10)
+Renderer: defaultMaterial, Bounds Center: (0.77, 0.64, 0.75), Size: (0.16, 0.36, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 45, Mesh Bounds Size: (0.16, 0.36, 0.02)
+Renderer: defaultMaterial, Bounds Center: (0.58, 0.63, 0.75), Size: (0.22, 0.36, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 26, Mesh Bounds Size: (0.22, 0.36, 0.02)
+Renderer: defaultMaterial, Bounds Center: (0.00, 0.62, 0.72), Size: (1.87, 0.34, 0.06)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 21, Mesh Bounds Size: (1.87, 0.34, 0.06)
+Renderer: defaultMaterial, Bounds Center: (-0.58, 0.63, 0.75), Size: (0.22, 0.36, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 31, Mesh Bounds Size: (0.22, 0.36, 0.02)
+Renderer: defaultMaterial, Bounds Center: (-0.77, 0.64, 0.75), Size: (0.17, 0.36, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 34, Mesh Bounds Size: (0.17, 0.36, 0.02)
+Renderer: defaultMaterial, Bounds Center: (-0.33, 0.11, -0.79), Size: (0.08, 0.08, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.08, 0.08, 0.02)
+Renderer: defaultMaterial, Bounds Center: (-0.91, 0.64, 0.71), Size: (0.11, 0.37, 0.10)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 53, Mesh Bounds Size: (0.11, 0.37, 0.10)
+Renderer: defaultMaterial, Bounds Center: (0.91, -0.06, 0.71), Size: (0.11, 1.03, 0.10)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 47, Mesh Bounds Size: (0.11, 1.03, 0.10)
+Renderer: defaultMaterial, Bounds Center: (0.77, -0.07, 0.74), Size: (0.16, 1.03, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 53, Mesh Bounds Size: (0.16, 1.03, 0.02)
+Renderer: defaultMaterial, Bounds Center: (0.32, -0.06, 0.75), Size: (0.65, 1.01, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 23, Mesh Bounds Size: (0.65, 1.01, 0.02)
+Renderer: defaultMaterial, Bounds Center: (0.00, -0.07, 0.75), Size: (1.86, 1.26, 0.00)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 6, Mesh Bounds Size: (1.86, 1.26, 0.00)
+Renderer: defaultMaterial, Bounds Center: (-0.32, -0.06, 0.75), Size: (0.65, 1.01, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 22, Mesh Bounds Size: (0.65, 1.01, 0.02)
+Renderer: defaultMaterial, Bounds Center: (-0.77, -0.07, 0.75), Size: (0.16, 1.03, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 34, Mesh Bounds Size: (0.16, 1.03, 0.02)
+Renderer: defaultMaterial, Bounds Center: (-0.91, -0.06, 0.71), Size: (0.11, 1.02, 0.10)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 67, Mesh Bounds Size: (0.11, 1.02, 0.10)
+Renderer: defaultMaterial, Bounds Center: (-0.34, 0.33, 0.76), Size: (0.09, 0.25, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 31, Mesh Bounds Size: (0.09, 0.25, 0.02)
+Renderer: defaultMaterial, Bounds Center: (0.34, 0.33, 0.76), Size: (0.09, 0.25, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 26, Mesh Bounds Size: (0.09, 0.25, 0.02)
+Renderer: defaultMaterial, Bounds Center: (-0.77, -0.46, 0.76), Size: (0.08, 0.08, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.08, 0.08, 0.02)
+Renderer: defaultMaterial, Bounds Center: (-0.77, 0.38, 0.76), Size: (0.08, 0.08, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.08, 0.08, 0.02)
+Renderer: defaultMaterial, Bounds Center: (-0.77, 0.68, 0.77), Size: (0.08, 0.08, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.08, 0.08, 0.02)
+Renderer: defaultMaterial, Bounds Center: (-0.60, 0.52, 0.77), Size: (0.08, 0.08, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.08, 0.08, 0.02)
+Renderer: defaultMaterial, Bounds Center: (-0.51, 0.39, 0.76), Size: (0.08, 0.08, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.08, 0.08, 0.02)
+Renderer: defaultMaterial, Bounds Center: (-0.34, 0.11, 0.76), Size: (0.08, 0.08, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.08, 0.08, 0.02)
+Renderer: defaultMaterial, Bounds Center: (0.00, -0.40, 0.76), Size: (0.08, 0.08, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.08, 0.08, 0.02)
+Renderer: defaultMaterial, Bounds Center: (0.33, 0.11, 0.76), Size: (0.08, 0.08, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.08, 0.08, 0.02)
+Renderer: defaultMaterial, Bounds Center: (0.51, 0.39, 0.76), Size: (0.08, 0.08, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.08, 0.08, 0.02)
+Renderer: defaultMaterial, Bounds Center: (0.60, 0.52, 0.77), Size: (0.08, 0.08, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.08, 0.08, 0.02)
+Renderer: defaultMaterial, Bounds Center: (0.77, 0.68, 0.77), Size: (0.08, 0.08, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.08, 0.08, 0.02)
+Renderer: defaultMaterial, Bounds Center: (0.77, 0.38, 0.76), Size: (0.08, 0.08, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.08, 0.08, 0.02)
+Renderer: defaultMaterial, Bounds Center: (0.77, -0.46, 0.76), Size: (0.08, 0.08, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.08, 0.08, 0.02)
+Renderer: defaultMaterial, Bounds Center: (-0.10, 0.64, 0.78), Size: (0.03, 0.03, 0.01)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.03, 0.03, 0.01)
+Renderer: defaultMaterial, Bounds Center: (0.10, 0.64, 0.78), Size: (0.03, 0.03, 0.01)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 46, Mesh Bounds Size: (0.03, 0.03, 0.01)
+Renderer: defaultMaterial, Bounds Center: (0.00, 0.49, 0.76), Size: (0.26, 0.35, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 58, Mesh Bounds Size: (0.26, 0.35, 0.02)
+Renderer: defaultMaterial, Bounds Center: (0.00, 0.48, 0.79), Size: (0.24, 0.29, 0.02)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 135, Mesh Bounds Size: (0.24, 0.29, 0.02)
+Renderer: defaultMaterial, Bounds Center: (0.00, 0.45, 0.79), Size: (0.14, 0.14, 0.03)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 24, Mesh Bounds Size: (0.14, 0.14, 0.03)
+Renderer: defaultMaterial, Bounds Center: (0.00, 0.58, 0.79), Size: (0.14, 0.10, 0.03)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 24, Mesh Bounds Size: (0.14, 0.10, 0.03)
+Renderer: defaultMaterial, Bounds Center: (-0.77, 0.81, -0.01), Size: (0.17, 0.02, 1.50)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 96, Mesh Bounds Size: (0.17, 0.02, 1.50)
+Renderer: defaultMaterial, Bounds Center: (-0.34, 0.63, -0.01), Size: (0.10, 0.36, 1.56)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 63, Mesh Bounds Size: (0.10, 0.36, 1.56)
+Renderer: defaultMaterial, Bounds Center: (0.34, 0.63, -0.01), Size: (0.10, 0.36, 1.56)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 68, Mesh Bounds Size: (0.10, 0.36, 1.56)
+Renderer: defaultMaterial, Bounds Center: (0.77, 0.80, -0.01), Size: (0.16, 0.02, 1.50)
+  Material: lambert1, Shader: Shader Graphs/glTF-pbrMetallicRoughness
+  Mesh name: defaultMaterial, Vertices: 22, Mesh Bounds Size: (0.16, 0.02, 1.50)
+
+--- Hierarchy ---
+wooden_treasures_box
+  Collada visual scene group
+    Top2
+      defaultMaterial
+    BackWood8
+      defaultMaterial
+    BackWood2
+      defaultMaterial
+    BackWood1
+      defaultMaterial
+    BackWood7b
+      defaultMaterial
+    BackWood6b
+      defaultMaterial
+    BackWood5b
+      defaultMaterial
+    BackWood4b
+      defaultMaterial
+    BackWood2b
+      defaultMaterial
+    BackWood1b
+      defaultMaterial
+    BackWood7a
+      defaultMaterial
+    BackWood6a
+      defaultMaterial
+    BackWood5a
+      defaultMaterial
+    BackWood4a
+      defaultMaterial
+    BackWood3a
+      defaultMaterial
+    BackWood2a
+      defaultMaterial
+    BackWood1a
+      defaultMaterial
+    sphere13
+      defaultMaterial
+    sphere12
+      defaultMaterial
+    sphere11
+      defaultMaterial
+    sphere10
+      defaultMaterial
+    sphere9
+      defaultMaterial
+    sphere8
+      defaultMaterial
+    sphere7
+      defaultMaterial
+    sphere5
+      defaultMaterial
+    sphere4
+      defaultMaterial
+    sphere3
+      defaultMaterial
+    sphere2
+      defaultMaterial
+    sphere1
+      defaultMaterial
+    Screw1
+      defaultMaterial
+    Screw2
+      defaultMaterial
+    LHandle3
+      defaultMaterial
+    LHandle2
+      defaultMaterial
+    LHandle1
+      defaultMaterial
+    LSide4
+      defaultMaterial
+    LSide3
+      defaultMaterial
+    LSide2
+      defaultMaterial
+    LSide1
+      defaultMaterial
+    RSide5
+      defaultMaterial
+    Screw1_0
+      defaultMaterial
+    Screw2_0
+      defaultMaterial
+    Handle3
+      defaultMaterial
+    Handle2
+      defaultMaterial
+    Handle1
+      defaultMaterial
+    RSide4
+      defaultMaterial
+    RSide3
+      defaultMaterial
+    RSide2
+      defaultMaterial
+    RSide1
+      defaultMaterial
+    FrontWood4b1
+      defaultMaterial
+    Bottom
+      defaultMaterial
+    FrontWood1a
+      defaultMaterial
+    FrontWood2a
+      defaultMaterial
+    FrontWood3a
+      defaultMaterial
+    FrontWood4a
+      defaultMaterial
+    FrontWood5a
+      defaultMaterial
+    FrontWood6a
+      defaultMaterial
+    sphere6
+      defaultMaterial
+    FrontWood7a
+      defaultMaterial
+    FrontWood1b
+      defaultMaterial
+    FrontWood2b
+      defaultMaterial
+    FrontWood3b
+      defaultMaterial
+    FrontWood4b
+      defaultMaterial
+    FrontWood5b
+      defaultMaterial
+    FrontWood6b
+      defaultMaterial
+    FrontWood7b
+      defaultMaterial
+    FrontWood2
+      defaultMaterial
+    FrontWood1
+      defaultMaterial
+    Sphere13
+      defaultMaterial
+    Sphere12
+      defaultMaterial
+    Sphere11
+      defaultMaterial
+    Sphere10
+      defaultMaterial
+    Sphere9
+      defaultMaterial
+    Sphere8
+      defaultMaterial
+    Sphere7
+      defaultMaterial
+    Sphere6
+      defaultMaterial
+    Sphere5
+      defaultMaterial
+    Sphere4
+      defaultMaterial
+    Sphere3
+      defaultMaterial
+    Sphere2
+      defaultMaterial
+    Sphere1
+      defaultMaterial
+    Screw2_1
+      defaultMaterial
+    Screw1_1
+      defaultMaterial
+    Lock4
+      defaultMaterial
+    Lock3
+      defaultMaterial
+    Lock2
+      defaultMaterial
+    Lock1
+      defaultMaterial
+    Top9
+      defaultMaterial
+    Top7
+      defaultMaterial
+    Top3
+      defaultMaterial
+    Top1
+      defaultMaterial

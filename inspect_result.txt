@@ -1,0 +1,11 @@
+--- Prefab Inspection: sign bord ---
+- sign bord: pos=(0.00, 0.00, 0.00), rot=(270.02, 0.00, 0.00), scale=(100.00, 100.00, 100.00)
+Renderer: sign bord
+  Local Position: (0.00, 0.00, 0.00)
+  Local Rotation: (270.02, 0.00, 0.00)
+  Local Scale: (100.00, 100.00, 100.00)
+  Bounds Center (local-ish): (0.02, 1.79, -0.03)
+  Bounds Size: (2.04, 3.68, 0.46)
+  Mesh Name: Cube.002
+  Mesh Bounds Center: (0.00, 0.00, 0.02)
+  Mesh Bounds Size: (0.02, 0.00, 0.04)

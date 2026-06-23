@@ -1,0 +1,12 @@
+--- Compass GLB Inspection ---
+Name: compass
+Renderer: Object_2, Bounds Center: (0.09, 2.25, 1.20), Size: (14.73, 0.48, 14.73)
+  Mesh name: Object_0, Vertices: 230, Mesh Bounds Size: (14.73, 14.73, 0.48)
+Renderer: Object_3, Bounds Center: (0.09, 1.48, 1.20), Size: (14.43, 0.01, 14.43)
+  Mesh name: Object_1, Vertices: 181, Mesh Bounds Size: (14.43, 14.43, 0.01)
+Renderer: Object_4, Bounds Center: (0.09, 1.27, 1.20), Size: (17.93, 1.93, 17.93)
+  Mesh name: Object_2, Vertices: 2666, Mesh Bounds Size: (17.93, 17.93, 1.93)
+Renderer: Object_5, Bounds Center: (-0.30, 1.79, -1.16), Size: (1.45, 0.22, 4.91)
+  Mesh name: Object_3, Vertices: 66, Mesh Bounds Size: (1.45, 4.91, 0.22)
+Renderer: Object_6, Bounds Center: (0.48, 1.79, 3.62), Size: (1.45, 0.22, 4.91)
+  Mesh name: Object_4, Vertices: 66, Mesh Bounds Size: (1.45, 4.91, 0.22)
