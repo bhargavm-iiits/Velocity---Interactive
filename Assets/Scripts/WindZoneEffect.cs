@@ -11,20 +11,7 @@ public class WindZoneEffect : MonoBehaviour
     {
         if (GameManager.Instance == null || PlayerController.Instance == null) return;
 
-        // Only apply wind during Level 5
-        if (GameManager.Instance.currentLevelIndex == 5)
-        {
-            // Simulate wind gusts using Perlin noise
-            float noise = Mathf.PerlinNoise(Time.time * gustFrequency, 0f);
-            float currentStrength = windStrength * noise;
-            
-            Vector3 appliedWind = baseWindDirection.normalized * currentStrength;
-            PlayerController.Instance.windForce = appliedWind;
-        }
-        else
-        {
-            // Reset wind force
-            PlayerController.Instance.windForce = Vector3.zero;
-        }
+        // Reset wind force (no wind applied in Sanctuary of Light)
+        PlayerController.Instance.windForce = Vector3.zero;
     }
 }

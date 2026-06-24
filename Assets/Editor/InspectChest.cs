@@ -7,49 +7,42 @@ public class InspectChest
     [MenuItem("Velocity Quest/Inspect Chest")]
     public static void Inspect()
     {
-        AssetDatabase.ImportAsset("Assets/wooden_treasures_box.glb");
-        GameObject chest = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/wooden_treasures_box.glb");
-        if (chest == null)
+        string[] chestPaths = new string[]
         {
-            Debug.LogError("Inspect Chest: wooden_treasures_box.glb not found!");
-            return;
-        }
+            "Assets/Envirornment/treasure-box/source/SnakeTreasureBox.fbx",
+            "Assets/Envirornment/metal_dragon_chinese_trinket_box_low_poly.glb",
+            "Assets/Envirornment/stylized-medieval-chest/source/Meshy_AI_Medieval_fantasy_trea_0604223036_texture_fbx/Meshy_AI_Medieval_fantasy_trea_0604223036_texture_fbx/Meshy_AI_Medieval_fantasy_trea_0604223036_texture.fbx",
+            "Assets/Envirornment/treasure-chest-scan/source/Box.glb",
+            "Assets/Envirornment/treasure-chest/source/finlowlowlow.fbx"
+        };
 
-        string report = $"--- Chest GLB Inspection ---\n";
-        report += $"Name: {chest.name}\n";
+        string report = "=== Chest Models Hierarchy Inspection ===\n\n";
 
-        // Find all Renderers
-        Renderer[] renderers = chest.GetComponentsInChildren<Renderer>(true);
-        foreach (var r in renderers)
+        for (int i = 0; i < chestPaths.Length; i++)
         {
-            report += $"Renderer: {r.name}, Bounds Center: {r.bounds.center}, Size: {r.bounds.size}\n";
-            foreach (var mat in r.sharedMaterials)
+            string path = chestPaths[i];
+            int levelIndex = i + 1;
+            report += $"--- LEVEL {levelIndex} CHEST (Path: {path}) ---\n";
+            
+            AssetDatabase.ImportAsset(path);
+            GameObject chestPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (chestPrefab == null)
             {
-                if (mat != null)
-                {
-                    report += $"  Material: {mat.name}, Shader: {mat.shader.name}\n";
-                    if (mat.HasProperty("_MainTex")) report += $"    _MainTex: {mat.GetTexture("_MainTex")?.name}\n";
-                    if (mat.HasProperty("_BaseMap")) report += $"    _BaseMap: {mat.GetTexture("_BaseMap")?.name}\n";
-                    if (mat.HasProperty("_Color")) report += $"    _Color: {mat.GetColor("_Color")}\n";
-                }
-                else
-                {
-                    report += $"  Material: NULL\n";
-                }
+                report += "ERROR: Could not load asset!\n\n";
+                continue;
             }
-            if (r is MeshRenderer mr)
-            {
-                MeshFilter mf = r.GetComponent<MeshFilter>();
-                if (mf != null && mf.sharedMesh != null)
-                {
-                    report += $"  Mesh name: {mf.sharedMesh.name}, Vertices: {mf.sharedMesh.vertexCount}, Mesh Bounds Size: {mf.sharedMesh.bounds.size}\n";
-                }
-            }
-        }
 
-        // Print full transform hierarchy
-        report += "\n--- Hierarchy ---\n";
-        PrintHierarchy(chest.transform, 0, ref report);
+            report += $"Prefab Name: {chestPrefab.name}\n";
+            report += "Hierarchy:\n";
+            PrintHierarchy(chestPrefab.transform, 1, ref report);
+            report += "\nRenderers in Prefab:\n";
+            Renderer[] renderers = chestPrefab.GetComponentsInChildren<Renderer>(true);
+            foreach (var r in renderers)
+            {
+                report += $"  Renderer name: {r.name}, Type: {r.GetType().Name}, Enabled: {r.enabled}\n";
+            }
+            report += "\n\n";
+        }
 
         File.WriteAllText("inspect_chest_result.txt", report);
         Debug.Log("Inspect Chest: Report saved to inspect_chest_result.txt");

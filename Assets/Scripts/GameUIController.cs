@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine.InputSystem;
 
 public class GameUIController : MonoBehaviour
@@ -17,6 +18,13 @@ public class GameUIController : MonoBehaviour
     public TextMeshProUGUI hudSpeedText;
     public TextMeshProUGUI hudDistanceText;
     public TextMeshProUGUI hudObjectiveText;
+    public TextMeshProUGUI hudTimerText;
+    [HideInInspector] public bool isTimerQuiz = false;
+    [HideInInspector] public int activeTimerLevelIndex = 1;
+    [HideInInspector] public bool isLevelStartQuiz = false;
+    [HideInInspector] public int activeLevelStartLevelIndex = 1;
+    private HashSet<int> askedQuestionIndices = new HashSet<int>();
+    private int activeQuestionIndex = 0;
 
     [Header("Velocity Selection Panel")]
     public GameObject selectionPanel;
@@ -68,6 +76,84 @@ public class GameUIController : MonoBehaviour
         public string feedbackCorrect;
         public string feedbackIncorrect;
     }
+
+    [System.Serializable]
+    public struct LevelQuestionData
+    {
+        public string question;
+        public string optionA;
+        public string optionB;
+        public string optionC;
+        public string optionD;
+        public char correctOption;
+        public string formula;
+        public string answer;
+        public string navigation;
+    }
+
+    private LevelQuestionData[] levelQuestions = new LevelQuestionData[]
+    {
+        new LevelQuestionData
+        {
+            question = "A traveler moves 200 meters along a sand-colored road in 10 seconds.\n\nWhat is the velocity?",
+            optionA = "15 m/s",
+            optionB = "20 m/s",
+            optionC = "25 m/s",
+            optionD = "30 m/s",
+            correctOption = 'B',
+            formula = "Velocity = Distance ÷ Time",
+            answer = "200 ÷ 10 = 20 m/s",
+            navigation = "Travel <color=#FFFF00><b>North</b></color> through the sand-colored path."
+        },
+        new LevelQuestionData
+        {
+            question = "A traveler moves 500 meters through a thick forest in 15 seconds.\n\nFind the speed.",
+            optionA = "30 m/s",
+            optionB = "33.33 m/s",
+            optionC = "35 m/s",
+            optionD = "40 m/s",
+            correctOption = 'B',
+            formula = "Speed = Distance ÷ Time",
+            answer = "500 ÷ 15 = 33.33 m/s",
+            navigation = "Travel <color=#FFFF00><b>East</b></color> through the forest."
+        },
+        new LevelQuestionData
+        {
+            question = "A traveler moves 1000 meters through a thick forest in 20 seconds.\n\nFind the speed.",
+            optionA = "40 m/s",
+            optionB = "45 m/s",
+            optionC = "50 m/s",
+            optionD = "60 m/s",
+            correctOption = 'C',
+            formula = "Speed = Distance ÷ Time",
+            answer = "1000 ÷ 20 = 50 m/s",
+            navigation = "Travel <color=#FFFF00><b>East</b></color> toward the ancient ruins."
+        },
+        new LevelQuestionData
+        {
+            question = "A traveler moves 1200 meters through a thick forest in 25 seconds.\n\nFind the speed.",
+            optionA = "45 m/s",
+            optionB = "48 m/s",
+            optionC = "50 m/s",
+            optionD = "55 m/s",
+            correctOption = 'B',
+            formula = "Speed = Distance ÷ Time",
+            answer = "1200 ÷ 25 = 48 m/s",
+            navigation = "Travel <color=#FFFF00><b>South</b></color> through the jungle."
+        },
+        new LevelQuestionData
+        {
+            question = "A traveler moves 1500 meters through a thick forest in 30 seconds.\n\nFind the speed.",
+            optionA = "45 m/s",
+            optionB = "50 m/s",
+            optionC = "55 m/s",
+            optionD = "60 m/s",
+            correctOption = 'B',
+            formula = "Speed = Distance ÷ Time",
+            answer = "1500 ÷ 30 = 50 m/s",
+            navigation = "Travel <color=#FFFF00><b>North</b></color> toward the temple."
+        }
+    };
 
     private QuizQuestion[] questionPool = new QuizQuestion[]
     {
@@ -215,23 +301,25 @@ public class GameUIController : MonoBehaviour
             return;
         }
 
-        // Dynamically update distance text based on target
+        // Dynamically update distance text based on cumulative distance traveled
         if (PlayerController.Instance != null && GameManager.Instance != null && GameManager.Instance.levelManager != null)
         {
-            Vector3 targetPos = GetCurrentTargetPos();
-            if (targetPos != Vector3.zero)
+            if (hudDistanceText != null)
             {
-                float distance = Vector3.Distance(PlayerController.Instance.transform.position, targetPos);
-                if (hudDistanceText != null)
-                {
-                    hudDistanceText.text = $"Distance: {Mathf.RoundToInt(distance)} m";
-                }
+                hudDistanceText.text = $"Distance: {Mathf.RoundToInt(GameManager.Instance.levelDistanceTraveled)} m";
             }
 
             // Dynamically update player's real-time speed in m/s
             if (hudDirectionText != null)
             {
-                hudDirectionText.text = $"Speed: {PlayerController.Instance.currentSpeedMPS:F1} m/s";
+                if (PlayerController.Instance.isMovingInWrongDirection)
+                {
+                    hudDirectionText.text = $"Speed: {PlayerController.Instance.currentSpeedMPS:F1} m/s <color=red>(Wrong Direction!)</color>";
+                }
+                else
+                {
+                    hudDirectionText.text = $"Speed: {PlayerController.Instance.currentSpeedMPS:F1} m/s";
+                }
             }
         }
     }
@@ -500,6 +588,27 @@ public class GameUIController : MonoBehaviour
         ConfigureHUDText(hudObjectiveText, -45f);
         topCenterHUD = statsObj;
 
+        // 1b. Timer Panel (Top-Right Corner)
+        GameObject timerPanelObj = new GameObject("TimerPanel");
+        timerPanelObj.transform.SetParent(canvasObj.transform, false);
+        RectTransform timerPanelRect = timerPanelObj.AddComponent<RectTransform>();
+        timerPanelRect.anchorMin = new Vector2(1f, 1f);
+        timerPanelRect.anchorMax = new Vector2(1f, 1f);
+        timerPanelRect.pivot = new Vector2(1f, 1f);
+        timerPanelRect.anchoredPosition = new Vector2(-50f, -20f);
+        timerPanelRect.sizeDelta = new Vector2(160f, 50f);
+
+        Image timerBg = timerPanelObj.AddComponent<Image>();
+        timerBg.color = new Color(0.2f, 0.1f, 0.1f, 0.75f); // Reddish glassmorphism
+
+        hudTimerText = CreateText(timerPanelObj, "TimerText", "Time: --", 18, Vector2.zero, font, Color.white);
+        hudTimerText.alignment = TextAlignmentOptions.Center;
+        RectTransform timerTextRect = hudTimerText.GetComponent<RectTransform>();
+        timerTextRect.anchorMin = Vector2.zero;
+        timerTextRect.anchorMax = Vector2.one;
+        timerTextRect.sizeDelta = Vector2.zero;
+        timerTextRect.anchoredPosition = Vector2.zero;
+
         // Required speed doesn't need to be displayed on screen-space HUD as it's on the physical sign board.
         // We set hudSpeedText to a dummy text on a disabled object to avoid NullReferenceException
         GameObject dummySpeedObj = new GameObject("DummySpeedText");
@@ -561,14 +670,33 @@ public class GameUIController : MonoBehaviour
         sumRect.anchorMax = Vector2.one;
         sumRect.sizeDelta = Vector2.zero;
         Image sumBg = sumObj.AddComponent<Image>();
-        sumBg.color = new Color(0.05f, 0.05f, 0.1f, 0.95f);
+        sumBg.color = new Color(0.05f, 0.05f, 0.1f, 0.98f);
         
-        CreateText(sumObj, "Title", "CONGRATULATIONS EXPLORER!", 28, new Vector2(0f, 150f), font, Color.yellow);
-        CreateText(sumObj, "Subtitle", "You Have Mastered Velocity", 20, new Vector2(0f, 90f), font, Color.white);
-        finalScoreText = CreateText(sumObj, "FinalScore", "Final Score: 0", 22, new Vector2(0f, 30f), font, Color.cyan);
+        CreateText(sumObj, "Title", "🎉 Congratulations!", 30, new Vector2(0f, 180f), font, Color.yellow);
         
-        string educationalText = "Velocity = Speed + Direction\n\nSpeed Only: How Fast You Move\nVelocity: How Fast And In Which Direction You Move\n\nThank You For Playing Velocity Quest!";
-        CreateText(sumObj, "EducationText", educationalText, 16, new Vector2(0f, -80f), font, Color.white);
+        string educationalText = "You have successfully completed all five levels.\n\nYou mastered the concepts of:\n• Velocity\n• Speed\n• Direction\n\nYou discovered every hidden treasure.\n\n🏆 LEVEL IS FINISHED";
+        CreateText(sumObj, "EducationText", educationalText, 18, new Vector2(0f, 30f), font, Color.white);
+        
+        finalScoreText = CreateText(sumObj, "FinalScore", "Final Score: 0", 22, new Vector2(0f, -90f), font, Color.cyan);
+
+        GameObject playAgainBtn = CreateButton(sumObj, "PlayAgainBtn", "Play Again", new Vector2(-120f, -170f), new Vector2(160f, 45f));
+        Button playBtn = playAgainBtn.GetComponent<Button>();
+        playBtn.onClick.AddListener(() => {
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.ReloadGameFromStart();
+            }
+        });
+        
+        GameObject exitBtn = CreateButton(sumObj, "ExitBtn", "Exit Game", new Vector2(120f, -170f), new Vector2(160f, 45f));
+        Button exBtn = exitBtn.GetComponent<Button>();
+        exBtn.onClick.AddListener(() => {
+            Application.Quit();
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#endif
+        });
+        
         summaryPanel = sumObj;
 
         // 7. Velocity Selection Panel
@@ -765,6 +893,160 @@ public class GameUIController : MonoBehaviour
         }
     }
 
+    public void StartLevelStartQuiz(int levelIndex)
+    {
+        if (isQuizActive) return;
+
+        isLevelStartQuiz = true;
+        activeLevelStartLevelIndex = levelIndex;
+        isQuizActive = true;
+        isDisplayingResult = false;
+        selectedOptionIndex = 0;
+
+        Time.timeScale = 0f;
+
+        if (PlayerController.Instance != null)
+        {
+            PlayerController.Instance.movementFrozen = true;
+            PlayerController.Instance.enabled = false;
+        }
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        LevelQuestionData question = levelQuestions[levelIndex - 1];
+
+        if (quizTitleText != null)
+        {
+            quizTitleText.text = $"LEVEL {levelIndex} CHALLENGE";
+        }
+
+        if (quizQuestionText != null)
+        {
+            quizQuestionText.text = question.question;
+        }
+
+        if (optionTexts != null && optionTexts.Length >= 4)
+        {
+            optionTexts[0].text = "○ A. " + question.optionA;
+            optionTexts[1].text = "○ B. " + question.optionB;
+            optionTexts[2].text = "○ C. " + question.optionC;
+            optionTexts[3].text = "○ D. " + question.optionD;
+        }
+
+        HighlightQuizOption(selectedOptionIndex);
+
+        if (quizResultOverlay != null)
+        {
+            quizResultOverlay.SetActive(false);
+        }
+
+        if (quizPanel != null)
+        {
+            quizPanel.SetActive(true);
+        }
+
+        if (CompassSystem.Instance != null)
+        {
+            CompassSystem.Instance.SetCompassVisible(false);
+        }
+    }
+
+    public void StartTimerQuiz(int levelIndex)
+    {
+        if (isQuizActive) return;
+
+        isTimerQuiz = true;
+        activeTimerLevelIndex = levelIndex;
+        isQuizActive = true;
+        isDisplayingResult = false;
+        selectedOptionIndex = 0;
+
+        // Pause gameplay
+        Time.timeScale = 0f;
+
+        // Disable player controller movement and inputs
+        if (PlayerController.Instance != null)
+        {
+            PlayerController.Instance.enabled = false;
+        }
+
+        // Unlock cursor
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        // Populate quiz question based on levelIndex
+        int qIdx = GetUniqueQuestionIndex(GetQuestionIndexForTimer(levelIndex));
+        activeQuestionIndex = qIdx;
+        QuizQuestion question = questionPool[qIdx];
+
+        if (quizQuestionText != null)
+        {
+            quizQuestionText.text = "TIME EXPIRED! Final Challenge:\n" + question.question;
+        }
+
+        if (optionTexts != null && optionTexts.Length >= 4)
+        {
+            optionTexts[0].text = "○ A. " + question.optionA;
+            optionTexts[1].text = "○ B. " + question.optionB;
+            optionTexts[2].text = "○ C. " + question.optionC;
+            optionTexts[3].text = "○ D. " + question.optionD;
+        }
+
+        HighlightQuizOption(selectedOptionIndex);
+
+        if (quizResultOverlay != null)
+        {
+            quizResultOverlay.SetActive(false);
+        }
+
+        if (quizPanel != null)
+        {
+            quizPanel.SetActive(true);
+        }
+    }
+
+    public void ResetQuestionHistory()
+    {
+        askedQuestionIndices.Clear();
+    }
+
+    private int GetUniqueQuestionIndex(int preferredIndex)
+    {
+        if (!askedQuestionIndices.Contains(preferredIndex))
+        {
+            askedQuestionIndices.Add(preferredIndex);
+            return preferredIndex;
+        }
+
+        // Try to find another unasked index
+        for (int i = 0; i < questionPool.Length; i++)
+        {
+            if (!askedQuestionIndices.Contains(i))
+            {
+                askedQuestionIndices.Add(i);
+                return i;
+            }
+        }
+
+        // Reset if all are asked, except the preferred one
+        askedQuestionIndices.Clear();
+        askedQuestionIndices.Add(preferredIndex);
+        return preferredIndex;
+    }
+
+    private int GetQuestionIndexForTimer(int levelIndex)
+    {
+        switch (levelIndex)
+        {
+            case 1: return 0;
+            case 2: return 1;
+            case 3: return 2;
+            case 4: return 4;
+            default: return 3;
+        }
+    }
+
     public void StartQuiz(CheckpointTrigger trigger)
     {
         if (isQuizActive) return;
@@ -788,7 +1070,8 @@ public class GameUIController : MonoBehaviour
         Cursor.visible = true;
 
         // Populate quiz question
-        int qIdx = GetQuestionIndexForCheckpoint(trigger.checkpointIndex);
+        int qIdx = GetUniqueQuestionIndex(GetQuestionIndexForCheckpoint(trigger.checkpointIndex));
+        activeQuestionIndex = qIdx;
         QuizQuestion question = questionPool[qIdx];
 
         if (quizQuestionText != null)
@@ -918,13 +1201,143 @@ public class GameUIController : MonoBehaviour
         if (isDisplayingResult) return;
         isDisplayingResult = true;
 
-        int qIdx = GetQuestionIndexForCheckpoint(activeQuizTrigger.checkpointIndex);
-        QuizQuestion question = questionPool[qIdx];
+        if (isLevelStartQuiz)
+        {
+            LevelQuestionData lq = levelQuestions[activeLevelStartLevelIndex - 1];
+            char lqChosenChar = (char)('A' + selectedOptionIndex);
+            bool lqIsCorrect = lqChosenChar == lq.correctOption;
+            StartCoroutine(ShowLevelStartQuizResultCoroutine(lqIsCorrect, lq));
+            return;
+        }
+
+        QuizQuestion question = questionPool[activeQuestionIndex];
 
         char chosenChar = (char)('A' + selectedOptionIndex);
         bool isCorrect = chosenChar == question.correctOption;
 
         StartCoroutine(ShowQuizResultCoroutine(isCorrect, question));
+    }
+
+    private IEnumerator ShowLevelStartQuizResultCoroutine(bool isCorrect, LevelQuestionData question)
+    {
+        int correctIdx = question.correctOption - 'A';
+
+        if (isCorrect)
+        {
+            if (uiAudioSource != null)
+            {
+                AudioClip chime = CreateSuccessChimeClip();
+                uiAudioSource.PlayOneShot(chime);
+            }
+
+            for (int i = 0; i < 5; i++)
+            {
+                optionBgs[correctIdx].color = (i % 2 == 0) ? Color.green : new Color(1.0f, 0.85f, 0.2f, 1f);
+                optionTexts[correctIdx].color = (i % 2 == 0) ? Color.white : Color.black;
+                yield return new WaitForSecondsRealtime(0.15f);
+            }
+            optionBgs[correctIdx].color = Color.green;
+            optionTexts[correctIdx].color = Color.white;
+
+            if (quizResultOverlay != null)
+            {
+                Image overlayImg = quizResultOverlay.GetComponent<Image>();
+                if (overlayImg != null)
+                {
+                    overlayImg.color = new Color(0.08f, 0.45f, 0.08f, 0.98f);
+                }
+
+                if (quizResultTitleText != null)
+                {
+                    quizResultTitleText.text = "Correct Answer!";
+                }
+
+                if (quizResultDescText != null)
+                {
+                    quizResultDescText.text = $"Formula: {question.formula}\n\nAnswer: {question.answer}\n\n* Compass Activated *\n{question.navigation}";
+                }
+
+                quizResultOverlay.SetActive(true);
+            }
+
+            yield return new WaitForSecondsRealtime(4.5f);
+
+            if (quizResultOverlay != null) quizResultOverlay.SetActive(false);
+            if (quizPanel != null) quizPanel.SetActive(false);
+
+            isQuizActive = false;
+            isLevelStartQuiz = false;
+            Time.timeScale = 1f;
+
+            if (PlayerController.Instance != null)
+            {
+                PlayerController.Instance.movementFrozen = false;
+                PlayerController.Instance.enabled = true;
+            }
+
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+
+            if (CompassSystem.Instance != null)
+            {
+                CompassSystem.Instance.SetCompassVisible(true);
+            }
+
+            ShowNotification($"* Compass Activated *\n{question.navigation}");
+
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.StartLevelTimer();
+            }
+        }
+        else
+        {
+            if (uiAudioSource != null)
+            {
+                AudioClip buzzer = CreateErrorBuzzerClip();
+                uiAudioSource.PlayOneShot(buzzer);
+            }
+
+            for (int i = 0; i < 5; i++)
+            {
+                optionBgs[selectedOptionIndex].color = (i % 2 == 0) ? Color.red : new Color(0.15f, 0.18f, 0.25f, 1f);
+                optionTexts[selectedOptionIndex].color = (i % 2 == 0) ? Color.white : Color.gray;
+                yield return new WaitForSecondsRealtime(0.15f);
+            }
+            optionBgs[selectedOptionIndex].color = Color.red;
+            optionTexts[selectedOptionIndex].color = Color.white;
+
+            if (quizResultOverlay != null)
+            {
+                Image overlayImg = quizResultOverlay.GetComponent<Image>();
+                if (overlayImg != null)
+                {
+                    overlayImg.color = new Color(0.7f, 0.08f, 0.08f, 0.98f);
+                }
+
+                if (quizResultTitleText != null)
+                {
+                    quizResultTitleText.text = "Incorrect Answer!";
+                }
+
+                if (quizResultDescText != null)
+                {
+                    quizResultDescText.text = "Incorrect. Try Again.";
+                }
+
+                quizResultOverlay.SetActive(true);
+            }
+
+            yield return new WaitForSecondsRealtime(2.0f);
+
+            if (quizResultOverlay != null)
+            {
+                quizResultOverlay.SetActive(false);
+            }
+
+            HighlightQuizOption(selectedOptionIndex);
+            isDisplayingResult = false;
+        }
     }
 
     private IEnumerator ShowQuizResultCoroutine(bool isCorrect, QuizQuestion question)
@@ -988,9 +1401,18 @@ public class GameUIController : MonoBehaviour
 
             if (quizResultDescText != null)
             {
-                quizResultDescText.text = isCorrect 
-                    ? $"{question.feedbackCorrect}\n\nCheckpoint Cleared.\nProceed to the next objective."
-                    : $"{question.feedbackIncorrect}\n\nReloading from the last checkpoint...";
+                if (isTimerQuiz)
+                {
+                    quizResultDescText.text = isCorrect 
+                        ? $"{question.feedbackCorrect}\n\nLevel Cleared.\nAdvancing to the next objective."
+                        : $"{question.feedbackIncorrect}\n\nTime expired. Restarting the game from the beginning...";
+                }
+                else
+                {
+                    quizResultDescText.text = isCorrect 
+                        ? $"{question.feedbackCorrect}\n\nCheckpoint Cleared.\nProceed to the next objective."
+                        : $"{question.feedbackIncorrect}\n\nReloading from the last checkpoint...";
+                }
             }
 
             quizResultOverlay.SetActive(true);
@@ -1001,6 +1423,37 @@ public class GameUIController : MonoBehaviour
         if (quizPanel != null)
         {
             quizPanel.SetActive(false);
+        }
+
+        if (isTimerQuiz)
+        {
+            isQuizActive = false;
+            isTimerQuiz = false;
+            Time.timeScale = 1f;
+
+            if (PlayerController.Instance != null)
+            {
+                PlayerController.Instance.enabled = true;
+            }
+
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+
+            if (isCorrect)
+            {
+                if (GameManager.Instance != null)
+                {
+                    GameManager.Instance.CompleteLevel();
+                }
+            }
+            else
+            {
+                if (GameManager.Instance != null)
+                {
+                    GameManager.Instance.ReloadGameFromStart();
+                }
+            }
+            yield break;
         }
 
         if (isCorrect)

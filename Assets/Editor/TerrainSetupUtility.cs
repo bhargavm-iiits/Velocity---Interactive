@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
@@ -89,6 +90,20 @@ public class TerrainSetupUtility : EditorWindow
 
         Undo.RegisterCompleteObjectUndo(terrain.terrainData, "Setup Terrain and Paths");
 
+        TerrainCollider tc = terrain.GetComponent<TerrainCollider>();
+        if (tc != null)
+        {
+            Undo.RegisterCompleteObjectUndo(tc, "Disable Tree Colliders");
+            SerializedObject so = new SerializedObject(tc);
+            SerializedProperty prop = so.FindProperty("m_EnableTreeColliders");
+            if (prop != null)
+            {
+                prop.boolValue = true;
+                so.ApplyModifiedProperties();
+                Debug.Log("Velocity Quest: Enabled tree colliders on TerrainCollider.");
+            }
+        }
+
         TerrainData terrainData = terrain.terrainData;
         Debug.Log($"Velocity Quest: Found Terrain '{terrain.name}' of size {terrainData.size.x}x{terrainData.size.z}");
 
@@ -125,7 +140,7 @@ public class TerrainSetupUtility : EditorWindow
         GenerateGrass(terrainData, paths);
 
         // 8. Spawn Game Elements (Managers, Player, Chests, Checkpoints)
-        SpawnGameWorldObjects(terrain);
+        SpawnGameWorldObjects(terrain, paths);
 
         // Register scene in EditorBuildSettings
         string scenePath = "Assets/Envirornment/ALP_Assets/GrassFlowersFREE/Demo/DemoGrassFlowers.unity";
@@ -235,6 +250,21 @@ public class TerrainSetupUtility : EditorWindow
             GameObject treePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
             if (treePrefab != null)
             {
+                // Remove colliders from the tree prefab to allow free movement
+                string assetPath = AssetDatabase.GetAssetPath(treePrefab);
+                GameObject prefabRoot = PrefabUtility.LoadPrefabContents(assetPath);
+                Collider[] colliders = prefabRoot.GetComponentsInChildren<Collider>(true);
+                if (colliders.Length > 0)
+                {
+                    foreach (var c in colliders)
+                    {
+                        DestroyImmediate(c);
+                    }
+                    PrefabUtility.SaveAsPrefabAsset(prefabRoot, assetPath);
+                    Debug.Log($"Velocity Quest: Removed {colliders.Length} colliders from tree prefab '{treePrefab.name}'");
+                }
+                PrefabUtility.UnloadPrefabContents(prefabRoot);
+
                 TreePrototype proto = new TreePrototype
                 {
                     prefab = treePrefab,
@@ -613,7 +643,7 @@ public class TerrainSetupUtility : EditorWindow
         Debug.Log("Velocity Quest: Generated grass details on terrain (avoiding paths and key points)..");
     }
 
-    private static void SpawnGameWorldObjects(Terrain terrain)
+    private static void SpawnGameWorldObjects(Terrain terrain, List<PathSegment> paths)
     {
         float w = terrain.terrainData.size.x;
         float l = terrain.terrainData.size.z;
@@ -635,9 +665,9 @@ public class TerrainSetupUtility : EditorWindow
         playerObj.transform.position = pStartWorld + Vector3.up * 1f;
         playerObj.transform.SetParent(parentRoot.transform);
 
-        // Adjust collider
+        // Adjust collider - destroy the duplicate CapsuleCollider to prevent conflicts with CharacterController
         CapsuleCollider cap = playerObj.GetComponent<CapsuleCollider>();
-        if (cap != null) cap.isTrigger = false;
+        if (cap != null) DestroyImmediate(cap);
 
         CharacterController cc = playerObj.GetComponent<CharacterController>();
         if (cc == null) cc = playerObj.AddComponent<CharacterController>();
@@ -693,15 +723,37 @@ public class TerrainSetupUtility : EditorWindow
         // Dynamic sound creator
         AudioSource victorySrc = managersObj.AddComponent<AudioSource>();
         victorySrc.playOnAwake = false;
+        AudioClip victoryClip = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Envirornment/Audio/Chest Creak.wav");
+        if (victoryClip != null)
+        {
+            victorySrc.clip = victoryClip;
+        }
+        else
+        {
+            Debug.LogError("Velocity Quest: Chest Creak audio clip not found at Assets/Envirornment/Audio/Chest Creak.wav");
+        }
 
         // 4. Create Checkpoint Objects
-        Transform cpStart = CreateCheckpoint("StartCheckpoint", pStartWorld, parentRoot.transform, 1, new Vector3(0f, 0f, 6f));
-        Transform cpL1 = CreateCheckpoint("L1Checkpoint", GetTerrainPos(terrain, 0.2f * w, 0.32f * l), parentRoot.transform, 2);
-        Transform cpL2 = CreateCheckpoint("L2Checkpoint", GetTerrainPos(terrain, 0.52f * w, 0.12f * l), parentRoot.transform, 3);
-        Transform cpCave = CreateCheckpoint("CaveCheckpoint", GetTerrainPos(terrain, 0.68f * w, 0.44f * l), parentRoot.transform, 4);
-        Transform cpL3 = CreateCheckpoint("L3Checkpoint", GetTerrainPos(terrain, 0.68f * w, 0.46f * l), parentRoot.transform, 5);
-        Transform cpBridge = CreateCheckpoint("BridgeCheckpoint", GetTerrainPos(terrain, 0.24f * w, 0.44f * l), parentRoot.transform, 6);
-        Transform cpL4 = CreateCheckpoint("L4Checkpoint", GetTerrainPos(terrain, 0.22f * w, 0.6f * l), parentRoot.transform, 7);
+        Transform cpStart = CreateCheckpoint("StartCheckpoint", pStartWorld, parentRoot.transform, 1, new Vector3(0f, 0f, 6f), 0f);
+        cpStart.rotation = Quaternion.LookRotation(Vector3.forward, Vector3.up);
+
+        Transform cpL1 = CreateCheckpoint("L1Checkpoint", GetTerrainPos(terrain, 0.2f * w, 0.32f * l), parentRoot.transform, 2, Vector3.zero, 0f);
+        cpL1.rotation = Quaternion.LookRotation(Vector3.right, Vector3.up);
+
+        Transform cpL2 = CreateCheckpoint("L2Checkpoint", GetTerrainPos(terrain, 0.52f * w, 0.12f * l), parentRoot.transform, 3, Vector3.zero, 0f);
+        cpL2.rotation = Quaternion.LookRotation(Vector3.forward, Vector3.up);
+
+        Transform cpCave = CreateCheckpoint("CaveCheckpoint", GetTerrainPos(terrain, 0.68f * w, 0.44f * l), parentRoot.transform, 4, Vector3.zero, 480f);
+        cpCave.rotation = Quaternion.LookRotation(Vector3.forward, Vector3.up);
+
+        Transform cpL3 = CreateCheckpoint("L3Checkpoint", GetTerrainPos(terrain, 0.68f * w, 0.46f * l), parentRoot.transform, 5, Vector3.zero, 0f);
+        cpL3.rotation = Quaternion.LookRotation(Vector3.left, Vector3.up);
+
+        Transform cpBridge = CreateCheckpoint("BridgeCheckpoint", GetTerrainPos(terrain, 0.24f * w, 0.44f * l), parentRoot.transform, 6, Vector3.zero, 460f);
+        cpBridge.rotation = Quaternion.LookRotation(Vector3.left, Vector3.up);
+
+        Transform cpL4 = CreateCheckpoint("L4Checkpoint", GetTerrainPos(terrain, 0.22f * w, 0.6f * l), parentRoot.transform, 7, Vector3.zero, 0f);
+        cpL4.rotation = Quaternion.LookRotation(Vector3.forward, Vector3.up);
 
         gm.activeCheckpoint = cpStart;
 
@@ -710,17 +762,76 @@ public class TerrainSetupUtility : EditorWindow
         lm.level2Chest = CreateChest("Chest_L2", 2, GetTerrainPos(terrain, 0.52f * w, 0.12f * l), parentRoot.transform, victorySrc);
         lm.level3Chest = CreateChest("Chest_L3", 3, GetTerrainPos(terrain, 0.68f * w, 0.46f * l), parentRoot.transform, victorySrc);
         lm.level4Chest = CreateChest("Chest_L4", 4, GetTerrainPos(terrain, 0.22f * w, 0.6f * l), parentRoot.transform, victorySrc);
-        lm.level5Chest = CreateChest("Chest_L5", 5, GetTerrainPos(terrain, 0.5f * w, 0.85f * l), parentRoot.transform, victorySrc);
+        lm.level5Chest = CreateChest("Chest_L5", 5, GetTerrainPos(terrain, 0.5f * w, 0.85f * l) + new Vector3(0f, 0f, -1.5f), parentRoot.transform, victorySrc);
 
         // 6. Level 2 Collectibles
         lm.woodCollectible = CreateCollectible("WoodCollectible", CollectibleItem.CollectibleType.Wood, GetTerrainPos(terrain, 0.4f * w, 0.32f * l), parentRoot.transform);
         lm.stoneCollectible = CreateCollectible("StoneCollectible", CollectibleItem.CollectibleType.FireStone, GetTerrainPos(terrain, 0.4f * w, 0.12f * l), parentRoot.transform);
 
-        GameObject camp = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        camp.name = "CampfireSite";
-        camp.transform.position = GetTerrainPos(terrain, 0.46f * w, 0.12f * l);
-        camp.transform.localScale = new Vector3(1.5f, 0.1f, 1.5f);
-        camp.transform.SetParent(parentRoot.transform);
+        GameObject campfirePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Envirornment/new_years_fire.glb");
+        GameObject camp;
+        if (campfirePrefab != null)
+        {
+            camp = Instantiate(campfirePrefab);
+            camp.name = "CampfireSite";
+            camp.transform.position = GetTerrainPos(terrain, 0.46f * w, 0.12f * l);
+            camp.transform.localScale = Vector3.one;
+            camp.transform.SetParent(parentRoot.transform);
+            
+            // Add BoxCollider for physics collision
+            BoxCollider campCollider = camp.AddComponent<BoxCollider>();
+            campCollider.size = new Vector3(2f, 1.5f, 2f);
+            campCollider.center = new Vector3(0f, 0.75f, 0f);
+        }
+        else
+        {
+            camp = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            camp.name = "CampfireSite";
+            camp.transform.position = GetTerrainPos(terrain, 0.46f * w, 0.12f * l);
+            camp.transform.localScale = new Vector3(1.5f, 0.1f, 1.5f);
+            camp.transform.SetParent(parentRoot.transform);
+        }
+
+        // Dynamically add a custom rising fire particle system
+        GameObject firePsObj = new GameObject("CampfireParticles");
+        firePsObj.transform.SetParent(camp.transform, false);
+        firePsObj.transform.localPosition = new Vector3(0f, 0.2f, 0f);
+        
+        ParticleSystem firePs = firePsObj.AddComponent<ParticleSystem>();
+        var fireMain = firePs.main;
+        fireMain.playOnAwake = false; // MUST be false initially!
+        fireMain.startColor = new ParticleSystem.MinMaxGradient(new Color(1f, 0.5f, 0f, 0.8f), new Color(1f, 0.9f, 0f, 0.8f));
+        fireMain.startSpeed = new ParticleSystem.MinMaxCurve(1.5f, 3f);
+        fireMain.startSize = new ParticleSystem.MinMaxCurve(0.2f, 0.6f);
+        fireMain.startLifetime = new ParticleSystem.MinMaxCurve(0.5f, 1.2f);
+        fireMain.loop = true;
+        fireMain.gravityModifier = -0.1f;
+        
+        var fireEmission = firePs.emission;
+        fireEmission.rateOverTime = 60f;
+        
+        var fireShape = firePs.shape;
+        fireShape.shapeType = ParticleSystemShapeType.Cone;
+        fireShape.radius = 0.4f;
+        fireShape.angle = 15f;
+        
+        var fireColorOverLifetime = firePs.colorOverLifetime;
+        fireColorOverLifetime.enabled = true;
+        Gradient fireGrad = new Gradient();
+        fireGrad.SetKeys(
+            new GradientColorKey[] { new GradientColorKey(Color.red, 0.0f), new GradientColorKey(Color.yellow, 0.6f), new GradientColorKey(new Color(0.2f, 0.2f, 0.2f), 1.0f) },
+            new GradientAlphaKey[] { new GradientAlphaKey(1.0f, 0.0f), new GradientAlphaKey(0.8f, 0.7f), new GradientAlphaKey(0.0f, 1.0f) }
+        );
+        fireColorOverLifetime.color = new ParticleSystem.MinMaxGradient(fireGrad);
+        
+        var fireSizeOverLifetime = firePs.sizeOverLifetime;
+        fireSizeOverLifetime.enabled = true;
+        AnimationCurve fireSizeCurve = new AnimationCurve();
+        fireSizeCurve.AddKey(0f, 0.1f);
+        fireSizeCurve.AddKey(0.2f, 1f);
+        fireSizeCurve.AddKey(1f, 0f);
+        fireSizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, fireSizeCurve);
+
         lm.campfireSite = camp;
 
         // 7. Level 3 key & cave block
@@ -747,22 +858,105 @@ public class TerrainSetupUtility : EditorWindow
         wolfSpawnObj.transform.SetParent(parentRoot.transform);
         lm.wolfSpawner = wolfSpawnObj.transform;
 
-        GameObject wolfP = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        wolfP.name = "WolfPrefab_Placeholder";
-        wolfP.transform.localScale = new Vector3(1.2f, 1.2f, 1.2f);
-        wolfP.GetComponent<Renderer>().sharedMaterial.color = Color.red;
-        wolfP.AddComponent<WolfAI>();
-        // Save as temporary prefab / asset to load
+        GameObject wolfPrefabSource = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Envirornment/Ultimate Animated Animals - July 2021-20260624T160444Z-3-001/Ultimate Animated Animals - July 2021/FBX/Wolf.fbx");
+        GameObject wolfP;
+        if (wolfPrefabSource != null)
+        {
+            wolfP = Instantiate(wolfPrefabSource);
+            wolfP.name = "WolfPrefab";
+            wolfP.transform.localScale = Vector3.one;
+            wolfP.transform.SetParent(parentRoot.transform);
+            
+            // Add WolfAI
+            wolfP.AddComponent<WolfAI>();
+            
+            // Add CapsuleCollider
+            CapsuleCollider wolfCollider = wolfP.AddComponent<CapsuleCollider>();
+            wolfCollider.center = new Vector3(0f, 0.5f, 0f);
+            wolfCollider.radius = 0.4f;
+            wolfCollider.height = 1.0f;
+            wolfCollider.direction = 2; // Z-axis forward
+            
+            // Setup Animator Controller
+            Animator anim = wolfP.GetComponent<Animator>();
+            if (anim == null) anim = wolfP.AddComponent<Animator>();
+            
+            var wolfController = CreateOrGetAnimatorController("Wolf", "Assets/Envirornment/Ultimate Animated Animals - July 2021-20260624T160444Z-3-001/Ultimate Animated Animals - July 2021/FBX/Wolf.fbx",
+                new string[] { "Idle", "Walk", "Run" },
+                new string[] { "idle", "walk", "run" });
+            anim.runtimeAnimatorController = wolfController;
+
+            ConvertMaterialsToURP(wolfP, "WolfMaterials", Color.gray);
+        }
+        else
+        {
+            wolfP = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            wolfP.name = "WolfPrefab_Placeholder";
+            wolfP.transform.localScale = new Vector3(1.2f, 1.2f, 1.2f);
+            wolfP.GetComponent<Renderer>().sharedMaterial.color = Color.red;
+            wolfP.AddComponent<WolfAI>();
+            wolfP.transform.SetParent(parentRoot.transform);
+        }
         lm.wolfPrefab = wolfP;
         wolfP.SetActive(false); // Hide template
 
         // 9. Level 5 Temple
-        GameObject temple = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        temple.name = "FinalTemple";
-        temple.transform.position = GetTerrainPos(terrain, 0.5f * w, 0.85f * l);
-        temple.transform.localScale = new Vector3(15f, 10f, 15f);
-        temple.transform.SetParent(parentRoot.transform);
-        temple.GetComponent<Renderer>().sharedMaterial.color = new Color(0.7f, 0.6f, 0.4f);
+        string templePath = "Assets/Envirornment/roman-temple/source/temple/roman_house_oltar_cups.fbx";
+        ModelImporter templeImporter = AssetImporter.GetAtPath(templePath) as ModelImporter;
+        if (templeImporter != null)
+        {
+            if (templeImporter.importNormals != ModelImporterNormals.Calculate || 
+                templeImporter.importTangents != ModelImporterTangents.CalculateMikk)
+            {
+                templeImporter.importNormals = ModelImporterNormals.Calculate;
+                templeImporter.importTangents = ModelImporterTangents.CalculateMikk;
+                templeImporter.SaveAndReimport();
+            }
+        }
+        GameObject templePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(templePath);
+        GameObject temple;
+        if (templePrefab != null)
+        {
+            Bounds b = new Bounds(Vector3.zero, Vector3.zero);
+            bool boundsSet = false;
+            foreach (var r in templePrefab.GetComponentsInChildren<Renderer>())
+            {
+                if (!boundsSet) { b = r.bounds; boundsSet = true; }
+                else b.Encapsulate(r.bounds);
+            }
+            Debug.Log($"[TEMPLE BOUNDS] Prefab size: {b.size}, bounds: {b}");
+
+            temple = Instantiate(templePrefab);
+            temple.name = "FinalTemple";
+            temple.transform.position = GetTerrainPos(terrain, 0.5f * w, 0.85f * l);
+            temple.transform.localScale = new Vector3(2f, 2f, 2f);
+            temple.transform.SetParent(parentRoot.transform);
+            
+            // Add MeshCollider components to all child meshes
+            MeshFilter[] mfs = temple.GetComponentsInChildren<MeshFilter>(true);
+            foreach (var mf in mfs)
+            {
+                if (mf.sharedMesh != null)
+                {
+                    GameObject childGo = mf.gameObject;
+                    if (childGo.GetComponent<Collider>() == null)
+                    {
+                        childGo.AddComponent<MeshCollider>();
+                    }
+                }
+            }
+            
+            ConvertMaterialsToURP(temple, "TempleMaterials", new Color(0.7f, 0.6f, 0.4f));
+        }
+        else
+        {
+            temple = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            temple.name = "FinalTemple";
+            temple.transform.position = GetTerrainPos(terrain, 0.5f * w, 0.85f * l);
+            temple.transform.localScale = new Vector3(15f, 10f, 15f);
+            temple.transform.SetParent(parentRoot.transform);
+            temple.GetComponent<Renderer>().sharedMaterial.color = new Color(0.7f, 0.6f, 0.4f);
+        }
         lm.finalTemple = temple;
 
         // Falling Tree Trigger
@@ -798,26 +992,14 @@ public class TerrainSetupUtility : EditorWindow
         shape.scale = new Vector3(40f, 1f, 40f);
         lm.stormRainSystem = rainPs;
 
-        // 10. Create Level Intersections (JunctionControllers)
-        // Level 1:
-        CreateJunction("Junction_L1", GetTerrainPos(terrain, 0.2f * w, 0.22f * l), "North", 2f, 40f, cpL1, parentRoot.transform);
+        // 10. Create Level Intersections (JunctionControllers) - REMOVED blocker junctions as requested by user.
 
-        // Level 2:
-        CreateJunction("Junction_L2_1", GetTerrainPos(terrain, 0.4f * w, 0.32f * l), "East", 3f, 70f, cpL2, parentRoot.transform);
-        CreateJunction("Junction_L2_2", GetTerrainPos(terrain, 0.4f * w, 0.12f * l), "South", 4f, 70f, cpL2, parentRoot.transform);
-
-        // Level 3 Sequence: North (3m/s), East (4m/s), North (2m/s)
-        CreateJunction("Junction_L3_1", GetTerrainPos(terrain, 0.52f * w, 0.28f * l), "North", 3f, 50f, cpL3, parentRoot.transform);
-        CreateJunction("Junction_L3_2", GetTerrainPos(terrain, 0.68f * w, 0.28f * l), "East", 4f, 50f, cpL3, parentRoot.transform);
-        CreateJunction("Junction_L3_3", GetTerrainPos(terrain, 0.68f * w, 0.44f * l), "North", 2f, 50f, cpL3, parentRoot.transform);
-
-        // Level 4:
-        CreateJunction("Junction_L4", GetTerrainPos(terrain, 0.3f * w, 0.44f * l), "East", 6f, 120f, cpL4, parentRoot.transform);
-
-        // Level 5 Maze Intersections:
-        CreateJunction("Junction_L5_1", GetTerrainPos(terrain, 0.22f * w, 0.72f * l), "North", 4f, 100f, null, parentRoot.transform);
-        CreateJunction("Junction_L5_2", GetTerrainPos(terrain, 0.38f * w, 0.72f * l), "East", 3f, 100f, null, parentRoot.transform);
-        CreateJunction("Junction_L5_3", GetTerrainPos(terrain, 0.38f * w, 0.85f * l), "North", 2f, 100f, null, parentRoot.transform);
+        // Spawn 100m milestone checkpoints for all 5 levels
+        SpawnCheckpointsForLevel(1, new List<Vector2>(GameManager.LevelWaypoints[0]), 20f, parentRoot.transform);
+        SpawnCheckpointsForLevel(2, new List<Vector2>(GameManager.LevelWaypoints[1]), 33.33f, parentRoot.transform);
+        SpawnCheckpointsForLevel(3, new List<Vector2>(GameManager.LevelWaypoints[2]), 50f, parentRoot.transform);
+        SpawnCheckpointsForLevel(4, new List<Vector2>(GameManager.LevelWaypoints[3]), 48f, parentRoot.transform);
+        SpawnCheckpointsForLevel(5, new List<Vector2>(GameManager.LevelWaypoints[4]), 50f, parentRoot.transform);
 
         // 11. Populate Level Configurations inside LevelManager
         SetupLevelManagerLevels(lm);
@@ -828,6 +1010,9 @@ public class TerrainSetupUtility : EditorWindow
         {
             lm.directionalLight = light;
         }
+
+        // 12. Spawning Ambient Animals
+        SpawnAmbientWildlife(terrain, parentRoot.transform, paths);
     }
 
     private static Vector3 GetTerrainPos(Terrain terrain, float x, float z)
@@ -836,11 +1021,14 @@ public class TerrainSetupUtility : EditorWindow
         return new Vector3(x, y + terrain.transform.position.y, z);
     }
 
-    private static Transform CreateCheckpoint(string name, Vector3 pos, Transform parent, int checkpointIndex, Vector3 triggerOffset = default)
+    private static Transform CreateCheckpoint(string name, Vector3 pos, Transform parent, int checkpointIndex, Vector3 triggerOffset = default, float distanceCovered = 0f)
     {
         GameObject go = new GameObject(name);
         go.transform.position = pos + Vector3.up * 0.2f;
         go.transform.SetParent(parent);
+
+        var cpDist = go.AddComponent<CheckpointDistance>();
+        cpDist.distanceCovered = distanceCovered;
 
         GameObject triggerGo = new GameObject(name + "_Trigger");
         triggerGo.transform.SetParent(go.transform, false);
@@ -862,8 +1050,36 @@ public class TerrainSetupUtility : EditorWindow
         chest.transform.position = pos;
         chest.transform.SetParent(parent);
 
-        AssetDatabase.ImportAsset("Assets/wooden_treasures_box.glb");
-        GameObject chestPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/wooden_treasures_box.glb");
+        string chestPath = "Assets/wooden_treasures_box.glb";
+        Vector3 chestScale = new Vector3(25.0f, 25.0f, 25.0f);
+
+        switch (index)
+        {
+            case 1:
+                chestPath = "Assets/Envirornment/treasure-box/source/SnakeTreasureBox.fbx";
+                chestScale = new Vector3(25.0f, 25.0f, 25.0f);
+                break;
+            case 2:
+                chestPath = "Assets/Envirornment/metal_dragon_chinese_trinket_box_low_poly.glb";
+                chestScale = new Vector3(25.0f, 25.0f, 25.0f);
+                break;
+            case 3:
+                chestPath = "Assets/Envirornment/stylized-medieval-chest/source/Meshy_AI_Medieval_fantasy_trea_0604223036_texture_fbx/Meshy_AI_Medieval_fantasy_trea_0604223036_texture_fbx/Meshy_AI_Medieval_fantasy_trea_0604223036_texture.fbx";
+                chestScale = new Vector3(25.0f, 25.0f, 25.0f);
+                break;
+            case 4:
+                chestPath = "Assets/Envirornment/treasure-chest-scan/source/Box.glb";
+                chestScale = new Vector3(25.0f, 25.0f, 25.0f);
+                break;
+            case 5:
+                chestPath = "Assets/Envirornment/treasure-chest/source/finlowlowlow.fbx";
+                chestScale = new Vector3(25.0f, 25.0f, 25.0f);
+                break;
+        }
+
+        EnsureReadWriteEnabled(chestPath);
+        AssetDatabase.ImportAsset(chestPath);
+        GameObject chestPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(chestPath);
         Transform lidTransform = null;
 
         if (chestPrefab != null)
@@ -873,7 +1089,7 @@ public class TerrainSetupUtility : EditorWindow
             chestInstance.transform.SetParent(chest.transform, false);
             chestInstance.transform.localPosition = Vector3.zero;
             chestInstance.transform.localRotation = Quaternion.identity;
-            chestInstance.transform.localScale = new Vector3(0.015f, 0.015f, 0.015f);
+            chestInstance.transform.localScale = chestScale;
 
             // Convert built-in/standard materials to URP Lit to prevent the magenta rendering issue
             Shader urpLitShader = Shader.Find("Universal Render Pipeline/Lit");
@@ -917,6 +1133,7 @@ public class TerrainSetupUtility : EditorWindow
                                 {
                                     newMat.SetTexture("_BaseMap", oldMat.GetTexture("_MainTex"));
                                 }
+                                BindTexturesToChestMaterial(newMat, oldMat.name, chestPath);
                                 AssetDatabase.CreateAsset(newMat, matPath);
                             }
                             else
@@ -930,6 +1147,7 @@ public class TerrainSetupUtility : EditorWindow
                                 {
                                     newMat.SetTexture("_BaseMap", oldMat.GetTexture("_MainTex"));
                                 }
+                                BindTexturesToChestMaterial(newMat, oldMat.name, chestPath);
                                 EditorUtility.SetDirty(newMat);
                             }
                             sharedMats[m] = newMat;
@@ -937,7 +1155,6 @@ public class TerrainSetupUtility : EditorWindow
                     }
                     r.sharedMaterials = sharedMats;
                 }
-                AssetDatabase.SaveAssets();
             }
 
             foreach (Transform child in chestInstance.GetComponentsInChildren<Transform>(true))
@@ -950,7 +1167,7 @@ public class TerrainSetupUtility : EditorWindow
             }
         }
 
-        if (lidTransform == null)
+        if (chestPrefab == null)
         {
             // Fallback base box
             GameObject baseBox = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -973,8 +1190,8 @@ public class TerrainSetupUtility : EditorWindow
         // Trigger Collider
         BoxCollider box = chest.AddComponent<BoxCollider>();
         box.isTrigger = true;
-        box.center = new Vector3(0f, 0.5f, 0f);
-        box.size = new Vector3(3f, 2f, 3f);
+        box.center = new Vector3(0f, 7.5f, 0f);
+        box.size = new Vector3(40f, 15f, 40f);
 
         TreasureChest tc = chest.AddComponent<TreasureChest>();
         tc.levelChestIndex = index;
@@ -1023,7 +1240,217 @@ public class TerrainSetupUtility : EditorWindow
         expEmit.SetBursts(new ParticleSystem.Burst[] { new ParticleSystem.Burst(0f, 150) });
         tc.openExplosionParticles = exp;
 
+        // 11. Instantiate pop-up rewards inside the chest (hidden by default)
+        string[] rewardPaths = new string[0];
+        Vector3[] rewardScales = new Vector3[0];
+        Vector3[] rewardRotations = new Vector3[0];
+
+        switch (index)
+        {
+            case 1:
+                rewardPaths = new string[] { "Assets/compass.glb" };
+                rewardScales = new Vector3[] { new Vector3(0.02f, 0.02f, 0.02f) };
+                rewardRotations = new Vector3[] { new Vector3(0f, 0f, 0f) };
+                break;
+            case 2:
+                rewardPaths = new string[] { "Assets/Envirornment/old-key-made-from-copper-and-gold/source/Key2_Low.fbx" };
+                rewardScales = new Vector3[] { new Vector3(0.1f, 0.1f, 0.1f) };
+                rewardRotations = new Vector3[] { new Vector3(90f, 0f, 0f) };
+                break;
+            case 3:
+                rewardPaths = new string[] { "Assets/Envirornment/annalakshmi_-_one_who_bestows_grain.glb" };
+                rewardScales = new Vector3[] { new Vector3(0.0015f, 0.0015f, 0.0015f) };
+                rewardRotations = new Vector3[] { new Vector3(0f, 0f, 0f) };
+                break;
+            case 4:
+                rewardPaths = new string[] { "Assets/Envirornment/maa-durga-statue/source/Untitled.glb" };
+                rewardScales = new Vector3[] { new Vector3(0.3f, 0.3f, 0.3f) };
+                rewardRotations = new Vector3[] { new Vector3(0f, 0f, 0f) };
+                break;
+            case 5:
+                rewardPaths = new string[] { 
+                    "Assets/Envirornment/realistic-gold-bar/source/GoldBar.fbx",
+                    "Assets/Envirornment/gold-coins-material/source/MaterialSphere01.fbx"
+                };
+                rewardScales = new Vector3[] { 
+                    new Vector3(0.08f, 0.08f, 0.08f),
+                    new Vector3(0.2f, 0.2f, 0.2f)
+                };
+                rewardRotations = new Vector3[] { 
+                    new Vector3(0f, 0f, 0f),
+                    new Vector3(0f, 0f, 0f)
+                };
+                break;
+        }
+
+        List<GameObject> rewardInstances = new List<GameObject>();
+        Shader rewardShader = Shader.Find("Universal Render Pipeline/Lit");
+
+        for (int rIndex = 0; rIndex < rewardPaths.Length; rIndex++)
+        {
+            string rPath = rewardPaths[rIndex];
+            EnsureReadWriteEnabled(rPath);
+            AssetDatabase.ImportAsset(rPath);
+            GameObject rPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(rPath);
+            if (rPrefab != null)
+            {
+                GameObject rInstance = Instantiate(rPrefab);
+                rInstance.name = name + "_Reward_" + rIndex;
+                rInstance.transform.SetParent(chest.transform, false);
+                
+                float yOffset = 0.2f;
+                Vector3 localPos = new Vector3(0f, yOffset, 0f);
+                if (index == 5)
+                {
+                    if (rIndex == 0) localPos = new Vector3(-0.25f, yOffset, 0f);
+                    else localPos = new Vector3(0.25f, yOffset, 0f);
+                }
+                
+                rInstance.transform.localPosition = localPos;
+                rInstance.transform.localRotation = Quaternion.Euler(rewardRotations[rIndex]);
+                rInstance.transform.localScale = rewardScales[rIndex];
+
+                if (rewardShader != null)
+                {
+                    Renderer[] rRends = rInstance.GetComponentsInChildren<Renderer>(true);
+                    foreach (var rend in rRends)
+                    {
+                        Material[] sharedMats = rend.sharedMaterials;
+                        for (int m = 0; m < sharedMats.Length; m++)
+                        {
+                            if (sharedMats[m] != null)
+                            {
+                                Material oldMat = sharedMats[m];
+                                string matDir = "Assets/Materials/RewardMaterials";
+                                if (!AssetDatabase.IsValidFolder(matDir))
+                                {
+                                    if (!AssetDatabase.IsValidFolder("Assets/Materials"))
+                                    {
+                                        AssetDatabase.CreateFolder("Assets", "Materials");
+                                    }
+                                    AssetDatabase.CreateFolder("Assets/Materials", "RewardMaterials");
+                                }
+                                string matPath = $"{matDir}/{oldMat.name}_URP.mat";
+                                Material newMat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
+                                if (newMat == null)
+                                {
+                                    newMat = new Material(rewardShader);
+                                    newMat.name = oldMat.name + "_URP";
+                                    if (oldMat.HasProperty("_Color")) newMat.SetColor("_BaseColor", oldMat.GetColor("_Color"));
+                                    if (oldMat.HasProperty("_MainTex") && oldMat.GetTexture("_MainTex") != null) newMat.SetTexture("_BaseMap", oldMat.GetTexture("_MainTex"));
+                                    AssetDatabase.CreateAsset(newMat, matPath);
+                                }
+                                sharedMats[m] = newMat;
+                            }
+                        }
+                        rend.sharedMaterials = sharedMats;
+                    }
+                }
+
+                rInstance.SetActive(false);
+                rewardInstances.Add(rInstance);
+            }
+        }
+        tc.rewardItems = rewardInstances.ToArray();
+
         return chest;
+     }
+
+    private static void BindTexturesToChestMaterial(Material mat, string matName, string chestPath)
+    {
+        string modelDir = System.IO.Path.GetDirectoryName(chestPath);
+        string parentDir = System.IO.Path.GetDirectoryName(modelDir); // root of the asset folder
+
+        Texture2D baseMap = FindTextureInDirectories(new string[] { modelDir, parentDir }, matName, "BaseColor", "Albedo", "Diffuse");
+        Texture2D bumpMap = FindTextureInDirectories(new string[] { modelDir, parentDir }, matName, "Normal", "Bump");
+        Texture2D emissiveMap = FindTextureInDirectories(new string[] { modelDir, parentDir }, matName, "Emission", "Emissive");
+        Texture2D metallicMap = FindTextureInDirectories(new string[] { modelDir, parentDir }, matName, "Metallic", "Metalness");
+        Texture2D roughnessMap = FindTextureInDirectories(new string[] { modelDir, parentDir }, matName, "Roughness", "Smoothness");
+
+        if (baseMap != null)
+        {
+            mat.SetTexture("_BaseMap", baseMap);
+        }
+        if (bumpMap != null)
+        {
+            mat.SetTexture("_BumpMap", bumpMap);
+            mat.EnableKeyword("_NORMALMAP");
+        }
+        if (emissiveMap != null)
+        {
+            mat.SetTexture("_EmissionMap", emissiveMap);
+            mat.SetColor("_EmissionColor", Color.white);
+            mat.EnableKeyword("_EMISSION");
+        }
+        if (metallicMap != null)
+        {
+            mat.SetTexture("_MetallicGlossMap", metallicMap);
+            mat.SetFloat("_Metallic", 1.0f);
+            mat.EnableKeyword("_METALLICSPECGLOSSMAP");
+        }
+        if (roughnessMap != null)
+        {
+            mat.SetFloat("_Smoothness", 0.5f);
+        }
+    }
+
+    private static Texture2D FindTextureInDirectories(string[] dirs, string matName, params string[] keywords)
+    {
+        foreach (var dir in dirs)
+        {
+            if (string.IsNullOrEmpty(dir) || !System.IO.Directory.Exists(dir)) continue;
+            string[] files = System.IO.Directory.GetFiles(dir, "*.*", System.IO.SearchOption.AllDirectories);
+            foreach (var file in files)
+            {
+                string ext = System.IO.Path.GetExtension(file).ToLower();
+                if (ext == ".png" || ext == ".jpg" || ext == ".tga" || ext == ".jpeg")
+                {
+                    string name = System.IO.Path.GetFileNameWithoutExtension(file).ToLower();
+                    
+                    bool matchesMat = string.IsNullOrEmpty(matName) || name.Contains(matName.ToLower().Replace(" ", ""));
+                    if (matName.ToLower().Contains("material") || matName.ToLower().Contains("lambert") || matName.ToLower().Contains("blinn"))
+                    {
+                        matchesMat = true; // generic material name fallback
+                    }
+
+                    if (matchesMat)
+                    {
+                        foreach (var kw in keywords)
+                        {
+                            if (name.Contains(kw.ToLower()))
+                            {
+                                string relativePath = "Assets" + file.Substring(Application.dataPath.Length).Replace('\\', '/');
+                                Texture2D tex = AssetDatabase.LoadAssetAtPath<Texture2D>(relativePath);
+                                if (tex != null) return tex;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Exact name match fallback
+        foreach (var dir in dirs)
+        {
+            if (string.IsNullOrEmpty(dir) || !System.IO.Directory.Exists(dir)) continue;
+            string[] files = System.IO.Directory.GetFiles(dir, "*.*", System.IO.SearchOption.AllDirectories);
+            foreach (var file in files)
+            {
+                string ext = System.IO.Path.GetExtension(file).ToLower();
+                if (ext == ".png" || ext == ".jpg" || ext == ".tga" || ext == ".jpeg")
+                {
+                    string name = System.IO.Path.GetFileNameWithoutExtension(file).ToLower();
+                    if (!string.IsNullOrEmpty(matName) && name.Equals(matName.ToLower().Replace(" ", ""), System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        string relativePath = "Assets" + file.Substring(Application.dataPath.Length).Replace('\\', '/');
+                        Texture2D tex = AssetDatabase.LoadAssetAtPath<Texture2D>(relativePath);
+                        if (tex != null) return tex;
+                    }
+                }
+            }
+        }
+        
+        return null;
     }
 
     private static GameObject CreateCollectible(string name, CollectibleItem.CollectibleType type, Vector3 pos, Transform parent)
@@ -1088,7 +1515,7 @@ public class TerrainSetupUtility : EditorWindow
         catch (System.Exception) { }
     }
 
-    private static void CreateJunction(string name, Vector3 pos, string reqDir, float reqSpeed, float reqDistance, Transform successCP, Transform parent)
+    private static void CreateJunction(string name, Vector3 pos, string reqDir, float reqSpeed, float reqDistance, Transform successCP, Transform parent, bool isGuidepost = false)
     {
         GameObject go = new GameObject(name);
         go.transform.position = pos;
@@ -1096,21 +1523,24 @@ public class TerrainSetupUtility : EditorWindow
 
         BoxCollider box = go.AddComponent<BoxCollider>();
         box.isTrigger = true;
-        box.size = new Vector3(8f, 5f, 3f);
+        box.size = new Vector3(40f, 5f, 15f);
 
         JunctionController jc = go.AddComponent<JunctionController>();
         jc.requiredDirection = reqDir;
         jc.requiredSpeed = reqSpeed;
         jc.successCheckpoint = successCP;
+        jc.isGuidepostOnly = isGuidepost;
+        jc.distanceMilestone = reqDistance;
 
-        // Visual helper in editor (semi transparent green block)
+        // Visual helper in editor (semi transparent green block at 5x scale)
         GameObject visual = GameObject.CreatePrimitive(PrimitiveType.Cube);
         visual.name = "JunctionVisualHelper";
         visual.transform.SetParent(go.transform);
-        visual.transform.localPosition = Vector3.zero;
-        visual.transform.localScale = new Vector3(8f, 0.1f, 3f);
+        visual.transform.localPosition = new Vector3(0f, 0.1f, 0f);
+        visual.transform.localScale = new Vector3(40f, 0.2f, 15f);
         visual.GetComponent<Collider>().enabled = false;
-        visual.GetComponent<Renderer>().sharedMaterial.color = new Color(0f, 1f, 0f, 0.3f);
+
+
 
         // Load and instantiate physical 3D wooden sign board
         GameObject signBoardPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/low-poly-sign-board-stylized-wooden-sign/source/sign bord.fbx");
@@ -1155,11 +1585,14 @@ public class TerrainSetupUtility : EditorWindow
 
             // Add BoxCollider so the sign board is physical and doesn't allow clipping
             BoxCollider signCollider = signBoard.AddComponent<BoxCollider>();
-            signCollider.center = new Vector3(0f, 0.8f, 0f);
-            signCollider.size = new Vector3(1.2f, 1.6f, 0.4f);
+            Vector3 localScale = signBoard.transform.localScale;
+            signCollider.center = new Vector3(0f, 0.8f / localScale.y, 0f);
+            signCollider.size = new Vector3(1.2f / localScale.x, 1.6f / localScale.y, 0.4f / localScale.z);
 
             // Create Canvas on both sides parented to the clean unrotated junction root (go)
-            string text = $"GO {reqDir.ToUpper()}\nSpeed: {reqSpeed} m/s\nDistance: {reqDistance} m";
+            string text = isGuidepost ?
+                $"GO {reqDir.ToUpper()}\nSpeed: {reqSpeed} m/s\nDistance Covered: {reqDistance} m" :
+                $"GO {reqDir.ToUpper()}\nSpeed: {reqSpeed} m/s\nDistance: {reqDistance} m";
             
             // Center of the planks is at height 2.6m to center the text perfectly and prevent clipping.
             Vector3 boardCenter = signWorldPos + Vector3.up * 2.6f;
@@ -1180,6 +1613,83 @@ public class TerrainSetupUtility : EditorWindow
         }
     }
 
+    private static void SpawnCheckpointsForLevel(int levelIndex, List<Vector2> pathPoints, float speed, Transform parent)
+    {
+        if (pathPoints.Count < 2) return;
+        
+        float interval = 100f;
+        float currentDistance = 0f;
+        float targetDistance = interval;
+        
+        Vector2 currentPos = pathPoints[0];
+        
+        Terrain terrain = parent.GetComponentInParent<Terrain>();
+        if (terrain == null) terrain = FindFirstObjectByType<Terrain>();
+        
+        for (int i = 1; i < pathPoints.Count; i++)
+        {
+            Vector2 nextPos = pathPoints[i];
+            float segmentLength = Vector2.Distance(currentPos, nextPos);
+            
+            while (currentDistance + segmentLength >= targetDistance)
+            {
+                float t = (targetDistance - currentDistance) / segmentLength;
+                Vector2 checkpointPos2D = Vector2.Lerp(currentPos, nextPos, t);
+                
+                Vector3 worldPos = GetTerrainPos(terrain, checkpointPos2D.x, checkpointPos2D.y);
+                
+                string reqDir = "North";
+                Vector2 segDir = (nextPos - currentPos).normalized;
+                if (Mathf.Abs(segDir.y) > Mathf.Abs(segDir.x))
+                {
+                    reqDir = segDir.y > 0 ? "North" : "South";
+                }
+                else
+                {
+                    reqDir = segDir.x > 0 ? "East" : "West";
+                }
+                
+                // Check if this position is too close to an existing blocker junction
+                bool tooClose = false;
+                foreach (Transform child in parent)
+                {
+                    if (child.name.StartsWith("Junction_") && !child.name.Contains("_Checkpoint") && !child.name.Contains("m"))
+                    {
+                        if (Vector3.Distance(child.position, worldPos) < 10f)
+                        {
+                            tooClose = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (tooClose)
+                {
+                    targetDistance += interval;
+                    continue;
+                }
+
+                string name = $"Junction_L{levelIndex}_{Mathf.RoundToInt(targetDistance)}m";
+                
+                GameObject cpObj = new GameObject(name + "_CheckpointCP");
+                cpObj.transform.position = worldPos + Vector3.up * 0.2f;
+                Vector3 roadDir3D = new Vector3(segDir.x, 0f, segDir.y).normalized;
+                cpObj.transform.rotation = Quaternion.LookRotation(roadDir3D, Vector3.up);
+                cpObj.transform.SetParent(parent);
+                
+                var cpDist = cpObj.AddComponent<CheckpointDistance>();
+                cpDist.distanceCovered = targetDistance;
+                
+                CreateJunction(name, worldPos, reqDir, speed, targetDistance, cpObj.transform, parent, isGuidepost: true);
+                
+                targetDistance += interval;
+            }
+            
+            currentDistance += segmentLength;
+            currentPos = nextPos;
+        }
+    }
+
     private static void SetupLevelManagerLevels(LevelManager lm)
     {
         lm.levels = new LevelManager.LevelConfig[5];
@@ -1195,9 +1705,9 @@ public class TerrainSetupUtility : EditorWindow
             lightColor = new Color(1f, 0.95f, 0.9f),
             lightIntensity = 1.3f,
             targetDirection = "North",
-            targetSpeed = 2f,
-            targetDistance = 40f,
-            objectiveText = "Reach Treasure Chest 1"
+            targetSpeed = 20f,
+            targetDistance = 200f,
+            objectiveText = "Travel <color=#FFFF00><b>North</b></color> to find the chest"
         };
 
         // Level 2
@@ -1211,9 +1721,9 @@ public class TerrainSetupUtility : EditorWindow
             lightColor = new Color(0.7f, 0.75f, 0.6f),
             lightIntensity = 0.8f,
             targetDirection = "East",
-            targetSpeed = 3f,
-            targetDistance = 70f,
-            objectiveText = "Collect Wood & Fire Stone to light the Campfire"
+            targetSpeed = 33.33f,
+            targetDistance = 500f,
+            objectiveText = "Travel <color=#FFFF00><b>East</b></color> through the forest"
         };
 
         // Level 3
@@ -1226,10 +1736,10 @@ public class TerrainSetupUtility : EditorWindow
             fogColor = new Color(0.2f, 0.25f, 0.25f),
             lightColor = new Color(0.5f, 0.6f, 0.6f),
             lightIntensity = 0.5f,
-            targetDirection = "North",
-            targetSpeed = 4f,
-            targetDistance = 50f,
-            objectiveText = "Memory challenge: Follow intersections to the ancient key"
+            targetDirection = "East",
+            targetSpeed = 50f,
+            targetDistance = 1000f,
+            objectiveText = "Travel <color=#FFFF00><b>East</b></color> toward the ruins"
         };
 
         // Level 4
@@ -1242,26 +1752,317 @@ public class TerrainSetupUtility : EditorWindow
             fogColor = new Color(0.5f, 0.5f, 0.6f),
             lightColor = new Color(0.8f, 0.8f, 0.9f),
             lightIntensity = 1.0f,
-            targetDirection = "East",
-            targetSpeed = 6f,
-            targetDistance = 120f,
-            objectiveText = "Sprint to escape wolves and reach Chest 4"
+            targetDirection = "South",
+            targetSpeed = 48f,
+            targetDistance = 1200f,
+            objectiveText = "Travel <color=#FFFF00><b>South</b></color> through the jungle"
         };
 
         // Level 5
         lm.levels[4] = new LevelManager.LevelConfig
         {
             levelIndex = 5,
-            levelName = "STORM OF DESTINY",
-            environmentDescription = "Heavy Rain, Strong Winds, Low Visibility",
-            fogDensity = 0.07f,
-            fogColor = new Color(0.1f, 0.12f, 0.15f),
-            lightColor = new Color(0.2f, 0.22f, 0.3f),
-            lightIntensity = 0.3f,
+            levelName = "SANCTUARY OF LIGHT",
+            environmentDescription = "Warm Sunlight and Clear Skies",
+            fogDensity = 0.003f,
+            fogColor = new Color(0.75f, 0.85f, 0.95f),
+            lightColor = new Color(1.0f, 0.95f, 0.85f),
+            lightIntensity = 1.8f,
             targetDirection = "North",
-            targetSpeed = 2f,
-            targetDistance = 100f,
-            objectiveText = "Dodge storm obstacles and follow signs to the Temple"
+            targetSpeed = 50f,
+            targetDistance = 1500f,
+            objectiveText = "Travel <color=#FFFF00><b>North</b></color> to enter the temple"
         };
+    }
+
+    private static AnimationClip FindClipInFBX(string fbxPath, string keyword)
+    {
+        Object[] assets = AssetDatabase.LoadAllAssetsAtPath(fbxPath);
+        AnimationClip fallback = null;
+        AnimationClip keywordMatch = null;
+        
+        foreach (Object asset in assets)
+        {
+            if (asset is AnimationClip clip)
+            {
+                if (clip.name.Contains("__preview__")) continue;
+                
+                // Log for visibility
+                Debug.Log($"Found clip: {clip.name} inside {fbxPath}");
+                
+                if (clip.name.IndexOf(keyword, System.StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    keywordMatch = clip;
+                    break; // Exact or keyword match found
+                }
+                
+                if (fallback == null)
+                {
+                    fallback = clip;
+                }
+            }
+        }
+        
+        return keywordMatch != null ? keywordMatch : fallback;
+    }
+
+    private static AnimatorController CreateOrGetAnimatorController(string animalName, string fbxPath, string[] stateNames, string[] keywords)
+    {
+        string controllerPath = $"Assets/Editor/{animalName}Animator.controller";
+        AnimatorController controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(controllerPath);
+        
+        // Always recreate or update to make sure clips are correctly set up
+        if (controller == null)
+        {
+            controller = AnimatorController.CreateAnimatorControllerAtPath(controllerPath);
+        }
+        
+        // Clear any existing states in the layer to rebuild cleanly
+        AnimatorStateMachine stateMachine = controller.layers[0].stateMachine;
+        ChildAnimatorState[] states = stateMachine.states;
+        foreach (var state in states)
+        {
+            stateMachine.RemoveState(state.state);
+        }
+        
+        // Add new states
+        for (int i = 0; i < stateNames.Length; i++)
+        {
+            string stateName = stateNames[i];
+            string keyword = keywords[i];
+            
+            AnimationClip clip = FindClipInFBX(fbxPath, keyword);
+            if (clip != null)
+            {
+                AnimatorState state = stateMachine.AddState(stateName);
+                state.motion = clip;
+                
+                // Set default state if it's Idle
+                if (stateName.Equals("Idle", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    stateMachine.defaultState = state;
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"Could not find clip matching '{keyword}' for {animalName} in FBX {fbxPath}");
+            }
+        }
+        
+        EditorUtility.SetDirty(controller);
+        return controller;
+    }
+
+    private static void ConvertMaterialsToURP(GameObject go, string folderName, Color? defaultColor = null)
+    {
+        Shader urpLitShader = Shader.Find("Universal Render Pipeline/Lit");
+        if (urpLitShader == null) return;
+
+        string matDir = $"Assets/Materials/{folderName}";
+        if (!AssetDatabase.IsValidFolder(matDir))
+        {
+            if (!AssetDatabase.IsValidFolder("Assets/Materials"))
+            {
+                AssetDatabase.CreateFolder("Assets", "Materials");
+            }
+            AssetDatabase.CreateFolder("Assets/Materials", folderName);
+        }
+
+        Renderer[] rends = go.GetComponentsInChildren<Renderer>(true);
+        foreach (var r in rends)
+        {
+            if (r is ParticleSystemRenderer) continue;
+
+            Material[] sharedMats = r.sharedMaterials;
+            for (int m = 0; m < sharedMats.Length; m++)
+            {
+                if (sharedMats[m] != null)
+                {
+                    Material oldMat = sharedMats[m];
+                    
+                    if (oldMat.shader != null && oldMat.shader.name.Contains("Universal Render Pipeline/Lit"))
+                    {
+                        continue;
+                    }
+
+                    string cleanMatName = oldMat.name.Replace(":", "_").Replace("/", "_").Replace("\\", "_");
+                    string matPath = $"{matDir}/{cleanMatName}_URP.mat";
+                    Material newMat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
+                    if (newMat == null)
+                    {
+                        newMat = new Material(urpLitShader);
+                        newMat.name = oldMat.name + "_URP";
+                        
+                        if (oldMat.HasProperty("_Color"))
+                        {
+                            newMat.SetColor("_BaseColor", oldMat.GetColor("_Color"));
+                        }
+                        else if (defaultColor.HasValue)
+                        {
+                            newMat.SetColor("_BaseColor", defaultColor.Value);
+                        }
+                        
+                        if (oldMat.HasProperty("_MainTex") && oldMat.GetTexture("_MainTex") != null)
+                        {
+                            newMat.SetTexture("_BaseMap", oldMat.GetTexture("_MainTex"));
+                        }
+                        else if (oldMat.HasProperty("_BaseMap") && oldMat.GetTexture("_BaseMap") != null)
+                        {
+                            newMat.SetTexture("_BaseMap", oldMat.GetTexture("_BaseMap"));
+                        }
+
+                        AssetDatabase.CreateAsset(newMat, matPath);
+                    }
+                    else
+                    {
+                        if (oldMat.HasProperty("_Color"))
+                        {
+                            newMat.SetColor("_BaseColor", oldMat.GetColor("_Color"));
+                        }
+                        if (oldMat.HasProperty("_MainTex") && oldMat.GetTexture("_MainTex") != null)
+                        {
+                            newMat.SetTexture("_BaseMap", oldMat.GetTexture("_MainTex"));
+                        }
+                        EditorUtility.SetDirty(newMat);
+                    }
+                    sharedMats[m] = newMat;
+                }
+            }
+            r.sharedMaterials = sharedMats;
+        }
+    }
+
+    private static void SpawnAmbientWildlife(Terrain terrain, Transform parent, List<PathSegment> paths)
+    {
+        float terrW = terrain.terrainData.size.x;
+        float terrL = terrain.terrainData.size.z;
+        List<Vector2> keyPoints = GetGameplayKeyPoints(terrW, terrL);
+        
+        string[] animalNames = new string[] {
+            "Alpaca", "Bull", "Cow", "Deer", "Donkey", "Fox", "Horse", "Horse_White", "Husky", "ShibaInu", "Stag"
+        };
+        
+        string baseDir = "Assets/Envirornment/Ultimate Animated Animals - July 2021-20260624T160444Z-3-001/Ultimate Animated Animals - July 2021/FBX";
+        
+        // Root container for ambient animals
+        GameObject animalsContainer = new GameObject("AmbientAnimalsContainer");
+        animalsContainer.transform.SetParent(parent);
+        
+        Random.State oldState = Random.state;
+        Random.InitState(888); // Set seed for consistent generation
+        
+        int targetCount = 70;
+        int spawnedCount = 0;
+        int attempts = 0;
+        int maxAttempts = 1500;
+        
+        while (spawnedCount < targetCount && attempts < maxAttempts)
+        {
+            attempts++;
+            float normX = Random.value;
+            float normZ = Random.value;
+            
+            // Keep animals slightly away from the absolute borders of the terrain
+            if (normX < 0.05f || normX > 0.95f || normZ < 0.05f || normZ > 0.95f) continue;
+            
+            float worldX = normX * terrW;
+            float worldZ = normZ * terrL;
+            Vector2 pos2D = new Vector2(worldX, worldZ);
+            
+            // Check distance to roads - keep a safe distance of 6m so they don't spawn right on the road
+            bool tooClose = false;
+            foreach (var seg in paths)
+            {
+                if (seg.IsPointNear(pos2D, 6.0f))
+                {
+                    tooClose = true;
+                    break;
+                }
+            }
+            
+            // Check distance to key gameplay points
+            if (!tooClose)
+            {
+                foreach (var kp in keyPoints)
+                {
+                    if (Vector2.Distance(pos2D, kp) < 10f)
+                    {
+                        tooClose = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (!tooClose)
+            {
+                // Randomly select animal model
+                string animalName = animalNames[Random.Range(0, animalNames.Length)];
+                string fbxPath = $"{baseDir}/{animalName}.fbx";
+                GameObject animalPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(fbxPath);
+                
+                if (animalPrefab != null)
+                {
+                    try
+                    {
+                        Vector3 spawnPos = GetTerrainPos(terrain, worldX, worldZ);
+                        GameObject animalInstance = Instantiate(animalPrefab);
+                        animalInstance.name = $"Ambient_{animalName}_{spawnedCount}";
+                        animalInstance.transform.position = spawnPos;
+                        animalInstance.transform.rotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
+                        animalInstance.transform.localScale = Vector3.one;
+                        animalInstance.transform.SetParent(animalsContainer.transform);
+                        
+                        // Attach AmbientAnimal script
+                        AmbientAnimal aa = animalInstance.AddComponent<AmbientAnimal>();
+                        // Tweak speed slightly for variety around 5 m/s
+                        aa.walkSpeed = Random.Range(4.5f, 5.5f);
+                        aa.wanderRadius = Random.Range(20f, 40f);
+                        
+                        // Add CapsuleCollider
+                        CapsuleCollider capCol = animalInstance.AddComponent<CapsuleCollider>();
+                        capCol.center = new Vector3(0f, 0.4f, 0f);
+                        capCol.radius = 0.35f;
+                        capCol.height = 0.8f;
+                        capCol.direction = 2; // Z-axis forward
+                        
+                        // Setup Animator Controller
+                        Animator anim = animalInstance.GetComponent<Animator>();
+                        if (anim == null) anim = animalInstance.AddComponent<Animator>();
+                        
+                        var controller = CreateOrGetAnimatorController(animalName, fbxPath,
+                            new string[] { "Idle", "Walk", "Eat" },
+                            new string[] { "idle", "walk", "eat" });
+                        anim.runtimeAnimatorController = controller;
+                        
+                        // Convert materials to URP Lit
+                        ConvertMaterialsToURP(animalInstance, $"{animalName}Materials", Color.gray);
+                        
+                        spawnedCount++;
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Debug.LogError($"[Velocity Quest] Error spawning animal {animalName}: {ex}");
+                    }
+                }
+                else
+                {
+                    Debug.LogError($"[Velocity Quest] Failed to load animal FBX from path: {fbxPath}");
+                }
+            }
+        }
+        
+        Random.state = oldState;
+        Debug.Log($"Velocity Quest: Successfully spawned {spawnedCount} ambient animals in the forest (out of {targetCount} requested).");
+    }
+
+    private static void EnsureReadWriteEnabled(string assetPath)
+    {
+        if (string.IsNullOrEmpty(assetPath)) return;
+        ModelImporter modelImporter = AssetImporter.GetAtPath(assetPath) as ModelImporter;
+        if (modelImporter != null && !modelImporter.isReadable)
+        {
+            modelImporter.isReadable = true;
+            modelImporter.SaveAndReimport();
+        }
     }
 }

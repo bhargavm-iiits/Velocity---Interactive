@@ -76,7 +76,7 @@ public class OpenDefaultScene
         }
 
         bool isSparse = terrain != null && terrain.terrainData != null && terrain.terrainData.treeInstances.Length < 20000;
-        bool forceRun = !EditorPrefs.GetBool("VelocityQuest_3DSignBoards_v41", false);
+        bool forceRun = !EditorPrefs.GetBool("VelocityQuest_3DSignBoards_v57", false);
 
         if (GameObject.Find("VelocityQuest_Gameplay") == null || isNotFlat || isSparse || forceRun)
         {
@@ -85,12 +85,7 @@ public class OpenDefaultScene
             InspectChest.Inspect();
             InspectCompass.Inspect();
             DumpCompassHierarchy.Dump();
-            DumpSceneObjects.MakeEverythingVisible();
-            EditorPrefs.SetBool("VelocityQuest_3DSignBoards_v41", true);
-        }
-        else
-        {
-            DumpSceneObjects.MakeEverythingVisible();
+            EditorPrefs.SetBool("VelocityQuest_3DSignBoards_v57", true);
         }
     }
 }

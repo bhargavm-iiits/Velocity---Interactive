@@ -15,9 +15,11 @@ public class WolfAI : MonoBehaviour
     private Transform player;
     private Vector3 spawnPosition;
     private bool isChasing = false;
+    private Animator animator;
 
     private void Start()
     {
+        animator = GetComponent<Animator>();
         spawnPosition = transform.position;
         if (PlayerController.Instance != null)
         {
@@ -92,11 +94,19 @@ public class WolfAI : MonoBehaviour
         if (direction.magnitude < 0.5f)
         {
             currentWaypointIndex = (currentWaypointIndex + 1) % patrolWaypoints.Length;
+            if (animator != null && !animator.GetCurrentAnimatorStateInfo(0).IsName("Idle"))
+            {
+                animator.Play("Idle");
+            }
         }
         else
         {
             transform.Translate(direction.normalized * patrolSpeed * Time.deltaTime, Space.World);
             transform.LookAt(new Vector3(targetWP.position.x, transform.position.y, targetWP.position.z));
+            if (animator != null && !animator.GetCurrentAnimatorStateInfo(0).IsName("Walk"))
+            {
+                animator.Play("Walk");
+            }
         }
     }
 
@@ -107,12 +117,20 @@ public class WolfAI : MonoBehaviour
 
         transform.Translate(direction.normalized * chaseSpeed * Time.deltaTime, Space.World);
         transform.LookAt(new Vector3(player.position.x, transform.position.y, player.position.z));
+        if (animator != null && !animator.GetCurrentAnimatorStateInfo(0).IsName("Run"))
+        {
+            animator.Play("Run");
+        }
     }
 
     private void CatchPlayer()
     {
         isChasing = false;
         transform.position = spawnPosition; // Reset wolf pos
+        if (animator != null)
+        {
+            animator.Play("Idle");
+        }
         
         if (GameManager.Instance != null)
         {

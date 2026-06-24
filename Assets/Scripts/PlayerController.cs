@@ -7,8 +7,8 @@ public class PlayerController : MonoBehaviour
     public static PlayerController Instance { get; private set; }
 
     [Header("Movement Settings")]
-    public float baseWalkSpeedMPS = 2f;
-    public float sprintSpeedMPS = 6f;
+    public float baseWalkSpeedMPS = 4f;
+    public float sprintSpeedMPS = 10f;
     public float jumpHeight = 1.2f;
     public float gravity = -9.81f;
 
@@ -21,6 +21,8 @@ public class PlayerController : MonoBehaviour
     [Header("State Variables")]
     public float currentSpeedMPS;
     public string currentDirectionString = "North";
+    [HideInInspector] public bool movementFrozen = false;
+    [HideInInspector] public bool isMovingInWrongDirection = false;
     
     // 3D Direction Scope Arrow container
     private Transform arrowContainer;
@@ -45,6 +47,34 @@ public class PlayerController : MonoBehaviour
     {
         if (Instance == null) Instance = this;
         controller = GetComponent<CharacterController>();
+        if (controller != null)
+        {
+            controller.stepOffset = 0.5f; // Ensure player can step up temple stairs smoothly
+        }
+
+        // Remove duplicate CapsuleCollider to prevent character controller physics conflicts
+        CapsuleCollider cap = GetComponent<CapsuleCollider>();
+        if (cap != null)
+        {
+            Destroy(cap);
+            Debug.Log("PlayerController: Destroyed duplicate CapsuleCollider component to prevent physics conflicts.");
+        }
+
+        // Fix all SignBoard colliders in the scene to compensate for scale 100
+        BoxCollider[] allBoxColliders = FindObjectsByType<BoxCollider>(FindObjectsSortMode.None);
+        foreach (var bc in allBoxColliders)
+        {
+            if (bc.gameObject.name.Contains("SignBoard") && bc.transform.localScale.x > 50f)
+            {
+                Vector3 scale = bc.transform.localScale;
+                if (bc.size.x > 0.5f)
+                {
+                    bc.center = new Vector3(bc.center.x / scale.x, bc.center.y / scale.y, bc.center.z / scale.z);
+                    bc.size = new Vector3(bc.size.x / scale.x, bc.size.y / scale.y, bc.size.z / scale.z);
+                    Debug.Log($"PlayerController: Fixed scale of signboard collider: {bc.gameObject.name} to center={bc.center}, size={bc.size}");
+                }
+            }
+        }
     }
 
     private void Start()
@@ -61,6 +91,29 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        // Stuck Diagnostics
+        if (Time.frameCount % 30 == 0)
+        {
+            try
+            {
+                string report = $"Frame {Time.frameCount} stuck check:\n";
+                report += $"Player Pos: {transform.position}, speed: {currentSpeedMPS:F2}\n";
+                Vector3 p1 = transform.position + Vector3.up * 0.5f;
+                Vector3 p2 = transform.position + Vector3.up * 1.5f;
+                Collider[] colls = Physics.OverlapCapsule(p1, p2, 0.45f);
+                report += $"Overlapped Colliders ({colls.Length}):\n";
+                foreach (var c in colls)
+                {
+                    report += $"- {c.name} (Object: {c.gameObject.name}, Tag: {c.tag}, Layer: {c.gameObject.layer}, isTrigger: {c.isTrigger})\n";
+                }
+                System.IO.File.WriteAllText("player_overlap_debug.txt", report);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Stuck check failed: {ex}");
+            }
+        }
+
         // Grounded check
         isGrounded = controller.isGrounded;
         if (isGrounded && playerVelocity.y < 0)
@@ -90,7 +143,39 @@ public class PlayerController : MonoBehaviour
 
         // Determine Speed in m/s
         float targetSpeedMPS = isSprinting ? sprintSpeedMPS : baseWalkSpeedMPS;
+
+        // Check if moving in correct direction
+        bool correctDirection = true;
+        if (GameManager.Instance != null)
+        {
+            string targetDir = GameManager.Instance.GetCurrentCorrectDirection(transform.position);
+            
+            if (moveDirection.magnitude > 0.05f && !string.IsNullOrEmpty(targetDir))
+            {
+                // Classify moveDirection to cardinal
+                float angle = Mathf.Atan2(moveDirection.x, moveDirection.z) * Mathf.Rad2Deg;
+                if (angle < 0) angle += 360f;
+
+                string inputDirStr = "North";
+                if (angle >= 315f || angle < 45f) inputDirStr = "North";
+                else if (angle >= 45f && angle < 135f) inputDirStr = "East";
+                else if (angle >= 135f && angle < 225f) inputDirStr = "South";
+                else inputDirStr = "West";
+
+                if (!inputDirStr.Equals(targetDir, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    correctDirection = false;
+                }
+            }
+        }
+
+        isMovingInWrongDirection = !correctDirection && moveDirection.magnitude > 0.05f;
+
         float speedMPS = targetSpeedMPS;
+        if (!correctDirection)
+        {
+            speedMPS = targetSpeedMPS * 0.2f; // Slow down to 20% speed as a penalty
+        }
 
         // Apply movement
         Vector3 movement = moveDirection * speedMPS;
@@ -113,6 +198,8 @@ public class PlayerController : MonoBehaviour
         // 1. New Input System keyboard/gamepad reads
         moveInput = Vector2.zero;
         isSprinting = false;
+
+        if (movementFrozen) return;
 
         // Keyboard WASD / Arrow keys
         if (Keyboard.current != null)
@@ -279,6 +366,14 @@ public class PlayerController : MonoBehaviour
         if (compassPrefab != null)
         {
             GameObject compassInstance = Instantiate(compassPrefab, arrowContainer);
+            
+            // Destroy all colliders on the compass to prevent player collision conflicts
+            Collider[] colls = compassInstance.GetComponentsInChildren<Collider>(true);
+            foreach (var c in colls)
+            {
+                Destroy(c);
+            }
+
             compassTransform = compassInstance.transform;
             float scale = 0.006f; // Scale it down from 17.93m to ~10.8cm
             compassInstance.transform.localScale = new Vector3(scale, scale, scale);
@@ -359,78 +454,6 @@ public class PlayerController : MonoBehaviour
             bool nextState = !arrowContainer.gameObject.activeSelf;
             arrowContainer.gameObject.SetActive(nextState);
             Debug.Log($"3D Compass visibility toggled to: {nextState}");
-
-            if (GameManager.Instance != null && GameManager.Instance.isDarkEnvironment)
-            {
-                SetCompassHighlight(nextState);
-            }
-        }
-    }
-
-    public bool Is3DCompassActive()
-    {
-        return arrowContainer != null && arrowContainer.gameObject.activeSelf;
-    }
-
-    public void SetCompassHighlight(bool highlight)
-    {
-        if (arrowContainer == null) return;
-
-        int targetLayer = highlight ? 31 : 0;
-        SetLayerRecursively(arrowContainer.gameObject, targetLayer);
-
-        if (highlight)
-        {
-            if (Camera.main != null)
-            {
-                Camera.main.cullingMask |= (1 << 31);
-            }
-            if (vrCameraTransform != null)
-            {
-                Camera vrCam = vrCameraTransform.GetComponent<Camera>();
-                if (vrCam != null) vrCam.cullingMask |= (1 << 31);
-            }
-
-            Transform lightTrans = arrowContainer.Find("CompassHighlightLight");
-            Light highlightLight = null;
-            if (lightTrans == null)
-            {
-                GameObject lightObj = new GameObject("CompassHighlightLight");
-                lightObj.transform.SetParent(arrowContainer, false);
-                lightObj.transform.localPosition = new Vector3(0f, 0.08f, -0.08f);
-                highlightLight = lightObj.AddComponent<Light>();
-                highlightLight.type = LightType.Point;
-                highlightLight.range = 0.5f;
-                highlightLight.intensity = 15f;
-                highlightLight.cullingMask = 1 << 31;
-            }
-            else
-            {
-                highlightLight = lightTrans.GetComponent<Light>();
-            }
-
-            if (highlightLight != null)
-            {
-                highlightLight.enabled = true;
-            }
-        }
-        else
-        {
-            Transform lightTrans = arrowContainer.Find("CompassHighlightLight");
-            if (lightTrans != null)
-            {
-                lightTrans.GetComponent<Light>().enabled = false;
-            }
-        }
-    }
-
-    private void SetLayerRecursively(GameObject obj, int newLayer)
-    {
-        if (obj == null) return;
-        obj.layer = newLayer;
-        foreach (Transform child in obj.transform)
-        {
-            SetLayerRecursively(child.gameObject, newLayer);
         }
     }
 }

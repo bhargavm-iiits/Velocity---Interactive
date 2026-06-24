@@ -14,10 +14,8 @@ public class CheckpointTrigger : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             Debug.Log($"Player entered Checkpoint {checkpointIndex} trigger!");
-            if (GameUIController.Instance != null)
-            {
-                GameUIController.Instance.StartQuiz(this);
-            }
+            // Checkpoints are now directly cleared without popping up quizzes
+            OnQuizCleared();
         }
     }
 
@@ -36,12 +34,6 @@ public class CheckpointTrigger : MonoBehaviour
             if (helper != null)
             {
                 helper.lastClearedCheckpoint = transform;
-            }
-
-            // If Checkpoint 1 is cleared, make the environment dark
-            if (checkpointIndex == 1)
-            {
-                GameManager.Instance.SetDarkEnvironment(true);
             }
         }
     }

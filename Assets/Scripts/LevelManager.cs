@@ -74,8 +74,7 @@ public class LevelManager : MonoBehaviour
         // Toggle level-specific components
         if (stormRainSystem != null)
         {
-            if (levelIndex == 5) stormRainSystem.Play();
-            else stormRainSystem.Stop();
+            stormRainSystem.Stop();
         }
 
         // Level 2: Enable wood and stone collectibles
@@ -94,6 +93,7 @@ public class LevelManager : MonoBehaviour
         if (levelIndex == 4 && wolfSpawner != null && wolfPrefab != null && spawnedWolfInstance == null)
         {
             spawnedWolfInstance = Instantiate(wolfPrefab, wolfSpawner.position, wolfSpawner.rotation);
+            spawnedWolfInstance.SetActive(true);
         }
         else if (levelIndex != 4 && spawnedWolfInstance != null)
         {
@@ -114,6 +114,7 @@ public class LevelManager : MonoBehaviour
         if (GameUIController.Instance != null)
         {
             GameUIController.Instance.SetTargetInstructions(config.targetDirection, config.targetSpeed, config.targetDistance, config.objectiveText);
+            GameUIController.Instance.StartLevelStartQuiz(levelIndex);
         }
     }
 
